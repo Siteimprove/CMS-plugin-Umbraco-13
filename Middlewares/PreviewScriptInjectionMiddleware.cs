@@ -100,7 +100,7 @@ public class PreviewScriptInjectionMiddleware
 	function onHighlight(highlightInfo) {{
 		const si = window._si;
 		if (!si) {{
-			console.warn('Content Assistant did not load correctly.');
+			console.warn('Error trying to apply highlighting. Content assistant global object was not found.');
 			return;
 		}}
 		si.push(['applyDefaultHighlighting', highlightInfo, document]);
