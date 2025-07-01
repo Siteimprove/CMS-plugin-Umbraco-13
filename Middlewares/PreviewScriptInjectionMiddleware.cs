@@ -25,7 +25,7 @@ public class PreviewScriptInjectionMiddleware
 	public async Task Invoke(HttpContext context)
 	{
 		var acceptHtml = context.Request.Headers["Accept"]
-			.Any(v => v.Contains("text/html", StringComparison.OrdinalIgnoreCase));
+			.Any(v => v?.Contains("text/html", StringComparison.OrdinalIgnoreCase) ?? false);
 
 		// Check if the request is for a preview, if it accepts HTML (which indicates that it is the request for the
 		// content of the preview page), and if the request is made from an iframe (where the content of the preview page is rendered)
@@ -73,13 +73,12 @@ public class PreviewScriptInjectionMiddleware
     }};
 
 	function loadSmallbox() {{
-		console.log('Loading Siteimprove Content Assistant...');
 		const script = document.createElement('script');
 		script.src = '{OverlayUrl}';
 		script.onload = function () {{
 			const si = window._si;
 			if (!si) {{
-				console.log('Content Assistant did not load correctly.');
+				console.warn('Content Assistant did not load correctly.');
 				return;
 			}}
 			si.push(['setSession', null, null, 'Umbraco {_umbracoVersion.Version}']);
@@ -93,7 +92,7 @@ public class PreviewScriptInjectionMiddleware
 	function onPrepublish() {{
 		return [
 			document,
-			() => console.log('FlatOM pull upload finished.'),
+			undefined,
 			'Full page'
 		];
 	}}
@@ -101,7 +100,7 @@ public class PreviewScriptInjectionMiddleware
 	function onHighlight(highlightInfo) {{
 		const si = window._si;
 		if (!si) {{
-			console.log('Content Assistant did not load correctly.');
+			console.warn('Content Assistant did not load correctly.');
 			return;
 		}}
 		si.push(['applyDefaultHighlighting', highlightInfo, document]);
