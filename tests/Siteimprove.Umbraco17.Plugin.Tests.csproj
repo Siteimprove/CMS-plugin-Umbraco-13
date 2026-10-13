@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="browser/**" />
     <ProjectReference Include="../Siteimprove.Umbraco17.Plugin.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="xunit" Version="2.9.3" />

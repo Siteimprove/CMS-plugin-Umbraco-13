@@ -24,3 +24,14 @@ project.lock.json
 *.cache
 *.mdf
 *.ldf
+node_modules/
+tests/browser/host/bin/
+tests/browser/host/obj/
+tests/browser/host/App_Data/
+tests/browser/host/App_Plugins/
+tests/browser/host/umbraco/
+tests/browser/host/Views/
+tests/browser/host/nuget.config
+tests/browser/test-results/
+tests/browser/playwright-report/
+

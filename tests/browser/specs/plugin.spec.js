@@ -1,0 +1,248 @@
+import { test, expect } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+
+const API = "/umbraco/management/api/v1/";
+const OVERLAY = "https://cdn.siteimprove.net/cms/overlay-latest.js";
+const PUBLIC_ORIGIN = "https://public.example.test";
+const stub = `
+(() => {
+    window.__siOverlayLoads = (window.__siOverlayLoads || 0) + 1;
+    window.__siCommands = [];
+    window.__siCallbacks = {};
+    const queue = window._si || [];
+    function capture(command) {
+        if (typeof command[1] === "function") window.__siCallbacks[command[0]] = command[1];
+        window.__siCommands.push(command.map(value =>
+            typeof value === "function" ? "[callback]" : value === document ? "[document]" : value));
+    }
+    window._si = { push: capture };
+    queue.forEach(capture);
+})();
+`;
+
+async function mockOverlay(context) {
+    await context.route(OVERLAY, route => route.fulfill({ status: 200, contentType: "text/javascript", body: stub }));
+}
+async function login(page, email = "admin@example.test") {
+    await page.goto("/umbraco/");
+    await page.locator('[name="username"]').fill(email);
+    await page.locator('[name="password"]').fill(process.env.E2E_ADMIN_PASSWORD);
+    await page.getByLabel("Login", { exact: true }).click();
+    await expect(page.locator("umb-backoffice")).toBeVisible();
+}
+async function navigate(page, path) {
+    await page.evaluate(path => history.pushState(null, "", path), path);
+}
+async function lastCommand(page) {
+    return page.evaluate(() => window.__siCommands?.at(-1));
+}
+async function screenshot(page, testInfo, name) {
+    await testInfo.attach(name, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+}
+async function previewFrame(popup) {
+    await expect.poll(async () => {
+        for (const frame of popup.frames())
+            if (await frame.locator("script[data-siteimprove-preview]").count()) return true;
+        return false;
+    }).toBe(true);
+    for (const frame of popup.frames())
+        if (await frame.locator("script[data-siteimprove-preview]").count()) return frame;
+    throw new Error("No rendered preview with the plugin script.");
+}
+
+test("real Umbraco backoffice and preview lifecycle", async ({ page, context, request, browser }, testInfo) => {
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    let token;
+    page.on("request", r => {
+        const bearer = r.headers().authorization;
+        if (r.url().includes(API) && bearer?.startsWith("Bearer ")) token = bearer;
+    });
+    await mockOverlay(context);
+    async function api(path, options = {}) {
+        const response = await page.request.fetch(API + path, {
+            ...options, headers: { Authorization: token, ...options.headers }
+        });
+        expect(response.ok(), path + ": " + response.status() + " " + await response.text()).toBe(true);
+        return response;
+    }
+    async function json(path) { return (await api(path)).json(); }
+    async function createDocument(name, typeId, templateId, parentId, published) {
+        const id = randomUUID();
+        await api("document", { method: "POST", data: {
+            id, parent: parentId ? { id: parentId } : null,
+            documentType: { id: typeId }, template: { id: templateId },
+            values: [], variants: [{ culture: null, segment: null, name }]
+        } });
+        if (published) await api("document/" + id + "/publish", {
+            method: "PUT", data: { publishSchedules: [{ culture: null }] }
+        });
+        return id;
+    }
+    const documentPath = id => "/umbraco/section/content/workspace/document/edit/" + id + "/invariant";
+    let home, first, second, draft, previewDraft, groups, writer;
+
+    await test.step("anonymous requests cannot access plugin APIs", async () => {
+        for (const endpoint of ["version", "public-url", "document/" + randomUUID() + "/url"]) {
+            const response = await request.get(API + "siteimprove/" + endpoint);
+            expect([401, 403]).toContain(response.status());
+        }
+    });
+
+    await test.step("login loads the installed backoffice extensions and authenticates the plugin API", async () => {
+        const version = page.waitForResponse(r => r.url().endsWith(API + "siteimprove/version"));
+        await login(page);
+        expect((await version).status()).toBe(200);
+        await expect.poll(() => page.evaluate(() => window.__siOverlayLoads)).toBe(1);
+        expect(await page.evaluate(() => window.__siCommands.some(c => c[0] === "setSession" && c[3].startsWith("Umbraco 17.")))).toBe(true);
+        expect(errors).toEqual([]);
+        await screenshot(page, testInfo, "authenticated-backoffice");
+    });
+
+    await test.step("create published and unpublished pages in the real CMS and grant the admin settings section", async () => {
+        const templateId = randomUUID(), pageTypeId = randomUUID(), homeTypeId = randomUUID();
+        await api("template", { method: "POST", data: {
+            id: templateId, name: "Browser Test", alias: "BrowserTest",
+            content: '@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage\n<!doctype html><html><head><title>@Model.Name</title></head><body><h1>@Model.Name</h1><p class="content">Preview content for @Model.Name</p><a href="/second-page/">Second page</a></body></html>'
+        } });
+        const type = {
+            alias: "browserTestPage", name: "Browser Test Page", icon: "icon-document",
+            allowedAsRoot: false, variesByCulture: false, variesBySegment: false, isElement: false,
+            properties: [], containers: [], compositions: [], allowedTemplates: [{ id: templateId }],
+            defaultTemplate: { id: templateId }, cleanup: { preventCleanup: true }
+        };
+        await api("document-type", { method: "POST", data: { ...type, id: pageTypeId, allowedDocumentTypes: [] } });
+        await api("document-type", { method: "POST", data: {
+            ...type, id: homeTypeId, alias: "browserTestHome", name: "Browser Test Home", allowedAsRoot: true,
+            allowedDocumentTypes: [{ documentType: { id: pageTypeId }, sortOrder: 0 }]
+        } });
+        home = await createDocument("Home", homeTypeId, templateId, null, true);
+        first = await createDocument("First Page", pageTypeId, templateId, home, true);
+        second = await createDocument("Second Page", pageTypeId, templateId, home, true);
+        draft = await createDocument("Draft Page", pageTypeId, templateId, home, false);
+        previewDraft = await createDocument("Preview Draft", pageTypeId, templateId, home, false);
+        groups = (await json("user-group?skip=0&take=100")).items;
+        const adminSummary = groups.find(g => g.alias === "admin" || /administrators/i.test(g.name));
+        expect(adminSummary).toBeTruthy();
+        const admin = await json("user-group/" + adminSummary.id);
+        await api("user-group/" + admin.id, { method: "PUT", data: {
+            ...admin, sections: [...new Set([...admin.sections, "siteimprovePublicUrlSection"])]
+        } });
+        writer = groups.find(g => /writers|editors/i.test(g.name));
+        expect(writer).toBeTruthy();
+        await page.reload();
+        await expect(page.locator("umb-backoffice")).toBeVisible();
+    });
+
+    await test.step("settings UI saves and persists a public domain and rejects a path", async () => {
+        await navigate(page, "/umbraco/section/siteimprove/dashboard/public-url");
+        await expect(page.locator("siteimprove-settings")).toBeVisible();
+        const input = page.getByLabel("Public domain", { exact: true });
+        await expect(input).toBeEnabled();
+        await input.fill(PUBLIC_ORIGIN + "/not-an-origin");
+        await page.getByLabel("Save public URL", { exact: true }).click();
+        await expect(page.getByRole("alert")).toContainText("without a path");
+        await input.fill(PUBLIC_ORIGIN);
+        await page.getByLabel("Save public URL", { exact: true }).click();
+        await expect(page.getByRole("status")).toContainText("Public URL saved.");
+        expect((await json("siteimprove/public-url")).publicUrl).toBe(PUBLIC_ORIGIN);
+        await page.reload();
+        await expect(page.getByLabel("Public domain", { exact: true })).toHaveValue(PUBLIC_ORIGIN);
+        await screenshot(page, testInfo, "settings-domain-saved");
+    });
+
+    await test.step("document navigation sends the mapped URL and clears context outside content", async () => {
+        await navigate(page, documentPath(first));
+        await expect.poll(() => lastCommand(page)).toEqual(["input", PUBLIC_ORIGIN + "/first-page/", ""]);
+        await navigate(page, documentPath(second));
+        await expect.poll(() => lastCommand(page)).toEqual(["input", PUBLIC_ORIGIN + "/second-page/", ""]);
+        await navigate(page, "/umbraco/section/siteimprove/dashboard/public-url");
+        await expect(page.locator("siteimprove-settings")).toBeVisible();
+        await expect.poll(() => lastCommand(page)).toEqual(["clear", ""]);
+    });
+
+    await test.step("unpublished content clears the assistant, then publishing refreshes its live URL", async () => {
+        expect((await json("siteimprove/document/" + draft + "/url")).url).toBeNull();
+        await navigate(page, documentPath(draft));
+        await expect(page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPublish")).toBeVisible();
+        await expect.poll(() => lastCommand(page)).toEqual(["clear", ""]);
+        await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPublish").click();
+        await expect.poll(() => lastCommand(page)).toEqual(["input", PUBLIC_ORIGIN + "/draft-page/", ""]);
+        await screenshot(page, testInfo, "document-published");
+    });
+
+    for (const [name, id] of [["published", () => first], ["never-published", () => previewDraft]]) {
+        await test.step(name + " preview registers a full-page prepublish callback and highlighting", async () => {
+            await navigate(page, documentPath(id()));
+            const popupPromise = page.waitForEvent("popup");
+            await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPreview").click();
+            const popup = await popupPromise;
+            const frame = await previewFrame(popup);
+            await expect.poll(() => frame.evaluate(() => typeof window.__siCallbacks?.registerPrepublishCallback)).toBe("function");
+            const check = await frame.evaluate(() => {
+                const result = window.__siCallbacks.registerPrepublishCallback();
+                window.__siCallbacks.onHighlight({ selector: ".content" });
+                return {
+                    usesRenderedDocument: result[0] === document, label: result[2],
+                    highlightCommand: window.__siCommands.at(-1)[0],
+                    hasContent: document.body.textContent.includes("Preview content")
+                };
+            });
+            expect(check).toEqual({ usesRenderedDocument: true, label: "Full page", highlightCommand: "applyDefaultHighlighting", hasContent: true });
+            await screenshot(popup, testInfo, name + "-preview");
+            await popup.close();
+        });
+    }
+
+    await test.step("ordinary public pages receive no preview injection", async () => {
+        const publicContext = await browser.newContext();
+        const publicPage = await publicContext.newPage();
+        const response = await publicPage.goto("http://localhost:5017/first-page/");
+        expect(response.status()).toBe(200);
+        await expect(publicPage.getByRole("heading", { name: "First Page", exact: true })).toBeVisible();
+        expect(await publicPage.locator("script[data-siteimprove-preview]").count()).toBe(0);
+        await publicContext.close();
+    });
+
+    await test.step("a non-admin user cannot read or change settings", async () => {
+        const response = await api("user", { method: "POST", data: {
+            email: "writer@example.test", name: "Browser Test Writer", userName: "writer@example.test",
+            kind: "Default", userGroupIds: [{ id: writer.id }]
+        } });
+        const writerId = response.headers().location.split("/").at(-1);
+        await api("user/" + writerId + "/change-password", { method: "POST", data: { newPassword: process.env.E2E_ADMIN_PASSWORD } });
+        const writerContext = await browser.newContext();
+        await mockOverlay(writerContext);
+        const writerPage = await writerContext.newPage();
+        let writerToken;
+        writerPage.on("request", r => {
+            const bearer = r.headers().authorization;
+            if (r.url().includes(API) && bearer?.startsWith("Bearer ")) writerToken = bearer;
+        });
+        await login(writerPage, "writer@example.test");
+        await expect.poll(() => !!writerToken).toBe(true);
+        for (const method of ["GET", "PUT"]) {
+            const denied = await writerPage.request.fetch(API + "siteimprove/public-url", {
+                method, headers: { Authorization: writerToken },
+                ...(method === "PUT" ? { data: { publicUrl: "" } } : {})
+            });
+            expect(denied.status()).toBe(403);
+        }
+        await writerContext.close();
+    });
+
+    await test.step("a blocked overlay does not prevent content editing", async () => {
+        const offlineContext = await browser.newContext();
+        await offlineContext.route(OVERLAY, route => route.abort("failed"));
+        const offlinePage = await offlineContext.newPage();
+        const offlineErrors = [];
+        offlinePage.on("pageerror", e => offlineErrors.push(e.message));
+        await login(offlinePage);
+        await navigate(offlinePage, documentPath(first));
+        await expect(offlinePage.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPublish")).toBeVisible();
+        expect(offlineErrors).toEqual([]);
+        await screenshot(offlinePage, testInfo, "editor-with-overlay-blocked");
+        await offlineContext.close();
+    });
+    expect(errors).toEqual([]);
+});

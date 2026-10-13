@@ -29,5 +29,19 @@ jobs:
         with:
           name: Siteimprove-Umbraco17-preview
           path: artifacts/*.nupkg
+      - name: Prepare real Umbraco browser-test host and Chromium
+        run: bash scripts/prepare-browser-tests.sh
+      - name: Playwright functional tests
+        run: |
+          export E2E_ADMIN_PASSWORD="$(node -e "process.stdout.write('E2e!' + require('node:crypto').randomBytes(24).toString('hex'))")"
+          npm --prefix tests/browser test
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Siteimprove-Playwright-evidence
+          path: |
+            tests/browser/test-results/
+            tests/browser/playwright-report/
 # Publishing is a separate release action after Cloud/on-premises acceptance.
 
