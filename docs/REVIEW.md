@@ -31,6 +31,14 @@ would add maintenance work without addressing the findings above. The shared
 version file removes duplication where it affects packaging; the plain modules
 continue to use Umbraco's import map.
 
+## Validation
+
+Beta.2 passed 19 JavaScript tests, 26 backend tests, package installation/publish
+checks, and the full Playwright flow on real Umbraco 17.7.1. Both the native
+plugin navigation and plugin-disabled control reported zero browser errors.
+[Verified run](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229)
+tested source `49d70214c8697936724f6717f5ad07a03aacf0ea`.
+
 ## Remaining acceptance and limits
 
 - Test Siteimprove's actual panel, login, analysis, and highlighting with a live

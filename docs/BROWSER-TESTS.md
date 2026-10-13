@@ -3,12 +3,17 @@
 ## Verified result
 
 Passed on 2026-10-13 against source commit
-`e99afc770ee4610e2c61b0e678716fc9c4df8034`: the full Chromium flow completed
-in 36.8 seconds. The workflow also passed all 36 regression tests, package creation,
+`49d70214c8697936724f6717f5ad07a03aacf0ea`: the full Chromium flow completed
+in 55.2 seconds. The workflow also passed all 45 regression tests, package creation,
 NuGet installation, and published asset checks.
 
+This beta.2 run used native menu/tree navigation and waited for the target
+document's rendered field values and enabled publish action. Both the plugin
+flow and the plugin-disabled control reported zero browser errors. The control
+made zero Siteimprove module, API, or overlay requests.
+
 Workflow and evidence:
-https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38460301904
+https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229
 
 The configuration now appears under **Settings → Siteimprove**, with no top-level
 Siteimprove section or custom user-group section grant. The browser test opens the
