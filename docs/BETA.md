@@ -5,8 +5,8 @@ This beta ports Siteimprove Content Assistant to **Umbraco 17.7.1+ (17.x)** on
 It is not a stable release and is not published to NuGet.org.
 
 Beta.2 supersedes beta.1 after a quality review. It adds document-level browse
-authorization to URL requests, prevents delayed initialization after logout or
-backoffice teardown, and shares one package version across the build and test
+authorization to URL requests, uses Umbraco's required workspace-context API,
+guards delayed initialization and teardown, and shares one package version across the build and test
 host. Use beta.2 for the customer trial. See [review findings](REVIEW.md).
 
 The configuration is under **Settings → Siteimprove**. The package integrates
@@ -67,17 +67,6 @@ integration, not Siteimprove's own login, live results, or remote analysis.
 Those checks and actual Cloud/Windows deployment acceptance remain pending.
 Multilingual/multisite routing also needs acceptance in the customer's setup.
 Headless/external preview rendering requires a separate integration.
-
-### Known CMS navigation edge
-
-The Umbraco 17.7.1 test host has intermittently reported
-`Persisted and published data does not have the same unique` from its publishing
-workspace while switching document contexts. The suite includes a rapid-navigation
-control with all Siteimprove backoffice extensions disabled; its result is retained
-in the browser evidence as `cms-only-navigation-control`. The main plugin flow
-uses Umbraco's menu/tree navigation and retains strict browser error checks.
-Check rapid page switching in the customer's CMS version as part of
-acceptance; this beta does not patch Umbraco's publishing code.
 
 See [browser tests](BROWSER-TESTS.md) for coverage and
 [validation](VALIDATION.md) for the full release checklist and the test host's

@@ -1,16 +1,17 @@
-import { UmbControllerBase } from "@umbraco-cms/backoffice/class-api";
+import { UmbContextBase } from "@umbraco-cms/backoffice/class-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { UMB_DOCUMENT_WORKSPACE_CONTEXT } from "@umbraco-cms/backoffice/document";
 import { observeMultiple } from "@umbraco-cms/backoffice/observable-api";
 import { SiteimproveApi } from "./api.js";
 import { assistant } from "./assistant.js";
 
-export class SiteimproveDocumentContext extends UmbControllerBase {
+export class SiteimproveDocumentContext extends UmbContextBase {
     #api;
     #workspace;
     #owner = Symbol("SiteimproveDocument");
+    #destroyed = false;
     constructor(host) {
-        super(host);
+        super(host, "Siteimprove.DocumentContext");
         this.consumeContext(UMB_AUTH_CONTEXT, auth => {
             this.#api = auth ? new SiteimproveApi(auth) : undefined;
             this.#observeDocument();
@@ -21,6 +22,7 @@ export class SiteimproveDocumentContext extends UmbControllerBase {
         });
     }
     #observeDocument() {
+        if (this.#destroyed) return;
         if (!this.#api || !this.#workspace) {
             assistant.release(this.#owner);
             return;
@@ -35,6 +37,9 @@ export class SiteimproveDocumentContext extends UmbControllerBase {
         }, "siteimprove-document");
     }
     destroy() {
+        this.#destroyed = true;
+        this.#workspace = undefined;
+        this.#api = undefined;
         assistant.release(this.#owner);
         super.destroy();
     }

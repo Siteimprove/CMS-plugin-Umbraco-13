@@ -354,12 +354,9 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         }
         await controlPage.waitForLoadState("networkidle");
         expect(pluginRequests).toEqual([]);
-        const unexpected = controlErrors.filter(e =>
-            e.message !== "Persisted and published data does not have the same unique"
-            || !e.stack?.includes("/packages/documents/document-publishing.workspace-context-"));
-        expect(unexpected).toEqual([]);
+        expect(controlErrors).toEqual([]);
         console.log("CMS-only control: Siteimprove requests=" + pluginRequests.length
-            + ", upstream publishing errors=" + controlErrors.length);
+            + ", browser errors=" + controlErrors.length);
         await testInfo.attach("cms-only-navigation-control", {
             body: JSON.stringify({ pluginRequests, controlErrors }, null, 2), contentType: "application/json"
         });

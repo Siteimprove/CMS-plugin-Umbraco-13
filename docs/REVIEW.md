@@ -10,6 +10,7 @@ hosting or the vendor's live service.
 | Priority | Finding | Change and verification |
 | --- | --- | --- |
 | High | Document-tree access alone did not enforce permissions on the requested document. A branch-restricted editor could request another document's published URL. | Apply Umbraco's resource-based browse authorization before URL resolution, matching its document Management API. Backend tests cover allowed/denied requests; Playwright checks an allowed document and a forbidden sibling with a restricted editor. |
+| High | The workspace context extension inherited a plain controller, which does not implement Umbraco's `provideAt` contract. Native tree navigation exposed router failures. | Inherit `UmbContextBase` and provide a dedicated context identity. Guard callbacks after teardown; tests cover disposed workspace callbacks, and Playwright exercises native menu/tree navigation. |
 | Medium | A pending version request could initialize the assistant after logout, teardown, or replacement of the backoffice instance. | Guard initialization with the current controller and authentication sequence. Tests cover unload, replacement, loss of authentication, and stale failures. |
 | Medium | Version literals in the project, test host, and installation script could diverge; the package smoke test selected the first archive in the output directory. | Use `Directory.Build.props` for the package/test-host version. Shared metadata checks detect manifest drift, and package verification selects the exact current-version archive and verifies its metadata. |
 
@@ -36,12 +37,6 @@ continue to use Umbraco's import map.
 - Verify the customer's Cloud or self-hosted deployment, languages/site domains,
   CSP/proxy, and upgraded database. Automated checks use Linux/Chromium and a
   disposable local CMS.
-- Umbraco 17.7.1 has intermittently raised a persisted/published-document mismatch
-  during workspace navigation. Its publishing-context source matches the error
-  stack. A CMS-only browser control disables the plugin and records this edge;
-  the main integration flow uses Umbraco's menu/tree navigation and continues
-  to reject browser errors. Check rapid switching in the
-  customer's CMS; the plugin does not patch the CMS implementation.
 - Preview HTML is buffered in memory. Measure very large rendered previews
   before wider rollout; a buffer limit or disk-backed buffering would be a
   separate change if customer workloads need it.
