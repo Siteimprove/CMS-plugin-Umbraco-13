@@ -120,6 +120,15 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         if (r.url().includes(API) && bearer?.startsWith("Bearer ")) token = bearer;
     });
     await mockOverlay(context);
+    await context.route("**/packages/core/workspace/index.js", async route => {
+        const response = await route.fetch();
+        const source = await response.text();
+        const probe = '(typeof t.provideAt !== "function" && console.log("INVALID_WORKSPACE_VIEW " + JSON.stringify({constructor:t.constructor?.name,alias:t.manifest?.alias,keys:Object.keys(t),prototype:Object.getOwnPropertyNames(Object.getPrototypeOf(t))})), t.provideAt(a))';
+        await route.fulfill({ response, body: source.replace("t.provideAt(a)", probe) });
+    });
+    page.on("console", message => {
+        if (message.text().startsWith("INVALID_WORKSPACE_VIEW")) console.log(message.text());
+    });
     async function api(path, options = {}) {
         const response = await page.request.fetch(API + path, {
             ...options, headers: { Authorization: token, ...options.headers }
