@@ -157,7 +157,6 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         expect(writer).toBeTruthy();
         await page.reload();
         await expect(page.locator("umb-backoffice")).toBeVisible();
-        console.log("Seeded document template", JSON.stringify((await json("document/" + first)).template));
     });
 
     await test.step("settings UI saves and persists a public domain and rejects a path", async () => {
@@ -264,10 +263,25 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         await offlineContext.route(OVERLAY, route => route.abort("failed"));
         const offlinePage = await offlineContext.newPage();
         const offlineErrors = [];
+        let offlineToken;
+        offlinePage.on("request", r => {
+            const bearer = r.headers().authorization;
+            if (r.url().includes(API) && bearer?.startsWith("Bearer ")) offlineToken = bearer;
+        });
         offlinePage.on("pageerror", e => offlineErrors.push(e.message));
         await login(offlinePage);
         await navigate(offlinePage, documentPath(first));
         await expect(offlinePage.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPublish")).toBeVisible();
+        await offlinePage.locator("umb-property-editor-ui-text-box input").fill("Edited while the Siteimprove overlay was blocked");
+        const saved = offlinePage.waitForResponse(r =>
+            r.url().includes("/document/" + first + "/update-and-publish") && r.status() === 200);
+        await offlinePage.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPublish").click();
+        await saved;
+        const documentResponse = await offlinePage.request.get(API + "document/" + first, {
+            headers: { Authorization: offlineToken }
+        });
+        expect((await documentResponse.json()).values.find(v => v.alias === "text").value)
+            .toBe("Edited while the Siteimprove overlay was blocked");
         expect(offlineErrors).toEqual([]);
         await screenshot(offlinePage, testInfo, "editor-with-overlay-blocked");
         await offlineContext.close();
