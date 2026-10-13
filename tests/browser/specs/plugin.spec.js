@@ -91,11 +91,21 @@ async function previewFrame(popup) {
 
 test("real Umbraco backoffice and preview lifecycle", async ({ page, context, request, browser }, testInfo) => {
     const errors = [];
-    page.on("pageerror", error => {
+    page.on("pageerror", async error => {
         errors.push(error.message);
         console.log("Backoffice browser error", JSON.stringify({
             path: new URL(page.url()).pathname, message: error.message, stack: error.stack
         }));
+        if (error.message.includes("provideAt")) {
+            const views = await page.locator("umb-workspace-editor").evaluateAll(elements => elements.map(element => ({
+                tag: element.localName,
+                views: (element._workspaceViews || []).map(view => ({
+                    alias: view.manifest?.alias, constructor: view.constructor?.name,
+                    provideAt: typeof view.provideAt, keys: Object.keys(view).slice(0,15)
+                }))
+            })));
+            console.log("Workspace view diagnostics", JSON.stringify(views));
+        }
     });
     let token;
     page.on("request", r => {
