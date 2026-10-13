@@ -14,13 +14,15 @@ current patched Umbraco releases.
 - JavaScript: 13 regression tests passed locally using Node 24, covering refreshed
   authentication tokens, custom backoffice paths, request errors, document
   changes, stale responses, teardown, and preview callbacks.
-- Backend: 23 tests passed on GitHub Actions against the initial 17.0.0 baseline,
+- Backend: 23 tests passed on GitHub Actions against Umbraco 17.7.1,
   covering origin mapping, HTML escaping, preview gating,
   response headers/length, and stream restoration.
-- Packaging: a script installs the alpha NuGet package in a fresh .NET web project
-  and checks development and published assets.
+- Packaging: package creation, archive paths, installation in a fresh .NET web
+  project, and development/published asset checks passed on GitHub Actions.
 - The editing workspace has no .NET SDK, so backend checks run on GitHub Actions.
-  Final 17.7.1 build and package installation validation are in progress.
+  Final 17.7.1 build and package installation validation passed:
+  https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38451366281
+  This run reported no build warnings. Its alpha package is available as an artifact.
 
 ## Release acceptance (pending)
 
