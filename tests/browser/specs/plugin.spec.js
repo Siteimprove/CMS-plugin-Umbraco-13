@@ -31,6 +31,10 @@ async function login(page, email = "admin@example.test") {
     await expect(page.locator("umb-backoffice")).toBeVisible();
 }
 async function navigate(page, path) {
+    const documentId = path.match(/\/workspace\/document\/edit\/([^/]+)/)?.[1];
+    const documentLoaded = documentId ? page.waitForResponse(response =>
+        new URL(response.url()).pathname === API + "document/" + documentId
+        && response.request().method() === "GET") : undefined;
     const section = path.match(/\/section\/([^/]+)/)?.[1];
     const currentSection = new URL(page.url()).pathname.match(/\/section\/([^/]+)/)?.[1];
     if (section !== currentSection && ["content", "settings"].includes(section)) {
@@ -41,8 +45,15 @@ async function navigate(page, path) {
             // Umbraco remembers the last dashboard when returning to a section.
             await expect(page.locator('[href$="dashboard/siteimprove"]').first()).toBeVisible();
         }
+        await page.waitForLoadState("networkidle");
     }
     await page.evaluate(path => history.pushState(null, "", path), path);
+    if (documentLoaded) {
+        expect((await documentLoaded).status()).toBe(200);
+        // The local fixture has finite requests. Let Umbraco finish both its
+        // persisted and published data before selecting the next document.
+        await page.waitForLoadState("networkidle");
+    }
 }
 async function lastCommand(page) {
     return page.evaluate(() => window.__siCommands?.at(-1));
