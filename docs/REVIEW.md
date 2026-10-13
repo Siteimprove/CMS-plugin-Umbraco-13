@@ -39,8 +39,8 @@ continue to use Umbraco's import map.
 - Umbraco 17.7.1 has intermittently raised a persisted/published-document mismatch
   during workspace navigation. Its publishing-context source matches the error
   stack. A CMS-only browser control disables the plugin and records this edge;
-  the main integration flow closes the previous workspace before selecting the
-  next and continues to reject browser errors. Check rapid switching in the
+  the main integration flow uses Umbraco's menu/tree navigation and continues
+  to reject browser errors. Check rapid switching in the
   customer's CMS; the plugin does not patch the CMS implementation.
 - Preview HTML is buffered in memory. Measure very large rendered previews
   before wider rollout; a buffer limit or disk-backed buffering would be a

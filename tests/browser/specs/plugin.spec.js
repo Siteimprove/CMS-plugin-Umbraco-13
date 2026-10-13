@@ -47,21 +47,19 @@ async function navigate(page, path) {
         }
         await page.waitForLoadState("networkidle");
     }
-    if (documentId && new URL(page.url()).pathname.includes("/workspace/document/edit/")
-        && !new URL(page.url()).pathname.includes("/edit/" + documentId + "/")) {
-        // Close the previous workspace instead of reusing its pending publishing
-        // context. The CMS-only rapid-navigation control below records that edge.
-        await page.evaluate(() => history.pushState(null, "", "/umbraco/section/content"));
-        await expect(page.locator("umb-document-workspace")).toHaveCount(0);
-        await page.waitForLoadState("networkidle");
-    }
-    await page.evaluate(path => history.pushState(null, "", path), path);
-    if (documentLoaded) {
+    if (documentId) {
+        const target = page.locator('umb-document-tree a[href$="/edit/' + documentId + '"]');
+        if (!await target.count()) {
+            await page.locator('umb-document-tree uui-menu-item[label="Home"] button#caret-button').click();
+        }
+        await target.click();
         expect((await documentLoaded).status()).toBe(200);
-        // The local fixture has finite requests. Let Umbraco finish both its
-        // persisted and published data before selecting the next document.
         await page.waitForLoadState("networkidle");
+    } else if (path.endsWith("/dashboard/siteimprove")) {
+        await page.locator('[href$="dashboard/siteimprove"]').first().click();
+        await expect(page.locator("siteimprove-settings")).toBeVisible();
     }
+
 }
 async function lastCommand(page) {
     return page.evaluate(() => window.__siCommands?.at(-1));
@@ -93,7 +91,12 @@ async function previewFrame(popup) {
 
 test("real Umbraco backoffice and preview lifecycle", async ({ page, context, request, browser }, testInfo) => {
     const errors = [];
-    page.on("pageerror", error => errors.push(error.message));
+    page.on("pageerror", error => {
+        errors.push(error.message);
+        console.log("Backoffice browser error", JSON.stringify({
+            path: new URL(page.url()).pathname, message: error.message, stack: error.stack
+        }));
+    });
     let token;
     page.on("request", r => {
         const bearer = r.headers().authorization;

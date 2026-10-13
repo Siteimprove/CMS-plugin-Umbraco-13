@@ -75,8 +75,8 @@ The Umbraco 17.7.1 test host has intermittently reported
 workspace while switching document contexts. The suite includes a rapid-navigation
 control with all Siteimprove backoffice extensions disabled; its result is retained
 in the browser evidence as `cms-only-navigation-control`. The main plugin flow
-closes the previous workspace before opening the next and retains strict browser
-error checks. Check rapid page switching in the customer's CMS version as part of
+uses Umbraco's menu/tree navigation and retains strict browser error checks.
+Check rapid page switching in the customer's CMS version as part of
 acceptance; this beta does not patch Umbraco's publishing code.
 
 See [browser tests](BROWSER-TESTS.md) for coverage and
