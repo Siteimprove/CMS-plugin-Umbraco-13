@@ -1,87 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Umbraco.Cms.Web.BackOffice.Controllers;
-using Newtonsoft.Json;
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Siteimprove.Umbraco17.Plugin.Services;
+using Umbraco.Cms.Api.Management.Controllers;
+using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Configuration;
-using Siteimprove.Umbraco13.Plugin.Services;
+using Umbraco.Cms.Web.Common.Authorization;
 
-namespace Siteimprove.Umbraco13.Plugin.Controllers;
+namespace Siteimprove.Umbraco17.Plugin.Controllers;
 
-public class SiteimproveController : UmbracoAuthorizedApiController
+[ApiVersion("1.0")]
+[VersionedApiBackOfficeRoute("siteimprove")]
+[ApiExplorerSettings(GroupName = "Siteimprove")]
+public sealed class SiteimproveController(
+    ISiteimprovePublicUrlService publicUrlService,
+    IUmbracoVersion umbracoVersion) : ManagementApiControllerBase
 {
-	private readonly ISiteimprovePublicUrlService _siteImprovePublicUrlService;
-	private readonly IUmbracoVersion _umbracoVersion;
+    [HttpGet("public-url")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminAccess)]
+    public IActionResult GetPublicUrl() => Ok(new PublicUrlResponse(publicUrlService.Get() ?? "", publicUrlService.IsConfigured));
 
-	public SiteimproveController(ISiteimprovePublicUrlService siteImprovePublicUrlService,
-		IUmbracoVersion umbracoVersion)
-	{
-		_siteImprovePublicUrlService = siteImprovePublicUrlService;
-		_umbracoVersion = umbracoVersion;
-	}
+    [HttpPut("public-url")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminAccess)]
+    public IActionResult SetPublicUrl([FromBody] PublicUrlRequest request)
+    {
+        if (publicUrlService.IsConfigured)
+            return Conflict(new ProblemDetails { Title = "The public URL is managed by application configuration." });
+        if (!PublicUrlMapper.TryNormalizeOrigin(request.PublicUrl, out var origin))
+            return BadRequest(new ProblemDetails { Title = "Enter an HTTP or HTTPS origin without a path, query, or fragment." });
+        publicUrlService.Set(origin);
+        return Ok(new PublicUrlResponse(publicUrlService.Get() ?? "", false));
+    }
 
-	[HttpGet]
-	public ActionResult PublicUrl()
-	{
-		try
-		{
-			var model = new
-			{
-				success = true,
-				publicUrl = _siteImprovePublicUrlService.Get() ?? ""
-			};
-			return Content(JsonConvert.SerializeObject(model), "application/json");
-		}
-		catch
-		{
-			var model = new
-			{
-				success = false,
-				message = $"Error trying to retrieve public url"
-			};
-			return Content(JsonConvert.SerializeObject(model), "application/json");
-		}
-	}
+    [HttpGet("version")]
+    public IActionResult Version() => Ok(new { version = umbracoVersion.Version.ToString() });
 
-	[HttpPost]
-	public ActionResult PublicUrl([FromBody] string publicUrl)
-	{
-		try
-		{
-			_siteImprovePublicUrlService.Set(publicUrl);
-			var model = new
-			{
-				success = true,
-				message = "Saved!"
-			};
-			return Content(JsonConvert.SerializeObject(model), "application/json");
-		}
-		catch (Exception ex)
-		{
-			var model = new
-			{
-				success = false,
-				message = $"Error: {ex.Message}"
-			};
-			return Content(JsonConvert.SerializeObject(model), "application/json");
-		}
-	}
-
-	[HttpGet]
-	public ActionResult UmbracoVersion()
-	{
-		return Content(_umbracoVersion.Version.ToString());
-	}
-
-	[HttpGet]
-	public ActionResult PageUrl(int pageId)
-	{
-		var url = _siteImprovePublicUrlService.GetPageUrlByPageId(pageId);
-		var urlWasFound = !string.IsNullOrEmpty(url);
-		var model = new
-		{
-			success = urlWasFound,
-			status = urlWasFound ? "OK" : "No published page with that id",
-			url
-		};
-		return Content(JsonConvert.SerializeObject(model), "application/json");
-	}
+    [HttpGet("document/{id:guid}/url")]
+    [Authorize(Policy = AuthorizationPolicies.TreeAccessDocuments)]
+    public async Task<IActionResult> PageUrl(Guid id, [FromQuery] string? culture)
+    {
+        var url = await publicUrlService.GetPageUrlAsync(id, culture);
+        return Ok(new { url });
+    }
 }
+
+public sealed record PublicUrlRequest(string PublicUrl);
+public sealed record PublicUrlResponse(string PublicUrl, bool IsConfigured);
+

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-package-schema.json",
+  "name": "Siteimprove Content Assistant",
+  "version": "1.0.0-alpha.1",
+  "extensions": [
+    {
+      "type": "backofficeEntryPoint",
+      "alias": "Siteimprove.EntryPoint",
+      "name": "Siteimprove Content Assistant",
+      "js": "/App_Plugins/Siteimprove/entrypoint.js"
+    },
+    {
+      "type": "workspaceContext",
+      "alias": "Siteimprove.DocumentContext",
+      "name": "Siteimprove document URL synchronization",
+      "api": "/App_Plugins/Siteimprove/document-context.js",
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "alias": "siteimprovePublicUrlSection",
+      "name": "Siteimprove",
+      "meta": {
+        "label": "Siteimprove",
+        "pathname": "siteimprove"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionUserPermission",
+          "match": "siteimprovePublicUrlSection"
+        },
+        {
+          "alias": "Umb.Condition.CurrentUser.IsAdmin"
+        }
+      ]
+    },
+    {
+      "type": "dashboard",
+      "alias": "Siteimprove.PublicUrlDashboard",
+      "name": "Siteimprove public URL",
+      "element": "/App_Plugins/Siteimprove/settings.element.js",
+      "meta": {
+        "label": "Public URL",
+        "pathname": "public-url"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionAlias",
+          "match": "siteimprovePublicUrlSection"
+        },
+        {
+          "alias": "Umb.Condition.CurrentUser.IsAdmin"
+        }
+      ]
+    }
+  ]
+}

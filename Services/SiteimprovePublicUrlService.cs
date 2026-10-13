@@ -1,72 +1,36 @@
-﻿using Umbraco.Extensions;
-using Umbraco.Cms.Core.Web;
+using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Web;
 
-namespace Siteimprove.Umbraco13.Plugin.Services;
+namespace Siteimprove.Umbraco17.Plugin.Services;
 
-public class SiteimprovePublicUrlService : ISiteimprovePublicUrlService
+public sealed class SiteimprovePublicUrlService(
+    IUmbracoContextFactory contextFactory, IKeyValueService keyValueService,
+    IPublishedUrlProvider urlProvider, IOptions<SiteimproveOptions> options) : ISiteimprovePublicUrlService
 {
-	private const string SiteimprovePublicUrlKey = "SiteimprovePublicUrl";
-	private readonly IUmbracoContextFactory _ctxFactory;
-	private readonly IKeyValueService _keyValueService;
+    // Keep the v13 key so an upgraded database retains the mapping.
+    private const string PublicUrlKey = "SiteimprovePublicUrl";
+    public bool IsConfigured => options.Value.PublicUrl is not null;
+    public string? Get() => options.Value.PublicUrl ?? keyValueService.GetValue(PublicUrlKey);
 
-	public SiteimprovePublicUrlService(IUmbracoContextFactory ctxFactory,
-		IKeyValueService keyValueService)
-	{
-		_ctxFactory = ctxFactory;
-		_keyValueService = keyValueService;
-	}
+    public void Set(string publicUrl)
+    {
+        if (IsConfigured) throw new InvalidOperationException("The public URL is managed by application configuration.");
+        if (!PublicUrlMapper.TryNormalizeOrigin(publicUrl, out var origin))
+            throw new ArgumentException("Enter an HTTP or HTTPS origin, such as https://www.example.com.", nameof(publicUrl));
+        keyValueService.SetValue(PublicUrlKey, origin);
+    }
 
-	public void Set(string publicUrl)
-	{
-		_keyValueService.SetValue(SiteimprovePublicUrlKey, publicUrl);
-	}
+    public async Task<string?> GetPageUrlAsync(Guid key, string? culture = null)
+    {
+        using var contextRef = contextFactory.EnsureUmbracoContext();
+        var content = await contextRef.UmbracoContext.Content.GetByIdAsync(key, preview: false);
+        return content is null ? null : GetPageUrl(content, culture);
+    }
 
-	public string? Get()
-	{
-		return _keyValueService.GetValue(SiteimprovePublicUrlKey);
-	}
-
-	public string GetPageUrlByPageId(int pageId)
-	{
-		using var contextRef = _ctxFactory.EnsureUmbracoContext();
-		var node = contextRef.UmbracoContext.Content?.GetById(pageId);
-		return TurnNodeIntoUrl(node);
-	}
-
-	public string GetPageUrlByPath(string path)
-	{
-		using var contextRef = _ctxFactory.EnsureUmbracoContext();
-		var node = contextRef.UmbracoContext.Content?.GetByRoute(path);
-		return TurnNodeIntoUrl(node);
-	}
-
-	private string TurnNodeIntoUrl(IPublishedContent? node)
-	{
-		var absoluteUrl = node != null ? node.Url(mode: UrlMode.Absolute) : string.Empty;
-		if (string.IsNullOrEmpty(absoluteUrl))
-		{
-			return string.Empty;
-		}
-
-		// Gets the public url (the new domain)
-		var newDomain = Get();
-		if (string.IsNullOrEmpty(newDomain))
-		{
-			return absoluteUrl;
-		}
-
-		var currentUri = new Uri(absoluteUrl);
-		var newDomainUri = new Uri(newDomain.TrimEnd('/'));
-
-		var uriBuilder = new UriBuilder(currentUri)
-		{
-			Scheme = newDomainUri.Scheme,
-			Host = newDomainUri.Host,
-			Port = newDomainUri.IsDefaultPort ? -1 : newDomainUri.Port
-		};
-
-		return uriBuilder.ToString();
-	}
+    public string? GetPageUrl(IPublishedContent content, string? culture = null)
+        => PublicUrlMapper.Map(urlProvider.GetUrl(content, UrlMode.Absolute, culture), Get());
 }
+
