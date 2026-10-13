@@ -5,6 +5,9 @@ import { assistant, loadOverlay } from "./assistant.js";
 
 let controller;
 export function onInit(host) {
+    // Umbraco also loads backoffice entry points in its preview shell.
+    // The rendered preview iframe owns the assistant and its callbacks.
+    if (host.getHostElement?.().localName === "umb-preview") return;
     controller?.destroy();
     controller = new UmbControllerBase(host);
     controller.consumeContext(UMB_AUTH_CONTEXT, async auth => {

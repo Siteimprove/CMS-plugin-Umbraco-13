@@ -204,6 +204,8 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
             await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPreview").click();
             const popup = await popupPromise;
             const frame = await previewFrame(popup);
+            expect(await popup.evaluate(() => window.__siOverlayLoads || 0)).toBe(0);
+            await expect.poll(() => frame.evaluate(() => window.__siOverlayLoads)).toBe(1);
             await expect.poll(() => frame.evaluate(() => typeof window.__siCallbacks?.registerPrepublishCallback)).toBe("function");
             const check = await frame.evaluate(() => {
                 const result = window.__siCallbacks.registerPrepublishCallback();

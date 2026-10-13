@@ -5,6 +5,9 @@ builder.CreateUmbracoBuilder()
     .AddComposers()
     .Build();
 
+// Templates are created through the real Management API after the host is built.
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+
 // Fixture-only diagnostics: no token/cookie values or credentials are logged.
 builder.Services.Configure<Umbraco.Cms.Web.Common.ApplicationBuilder.UmbracoPipelineOptions>(options =>
     options.AddFilter(new Umbraco.Cms.Web.Common.ApplicationBuilder.UmbracoPipelineFilter("BrowserPreviewDiagnostics",
