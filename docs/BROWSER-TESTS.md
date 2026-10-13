@@ -29,8 +29,8 @@ The browser flow checks:
 
 1. Anonymous requests are denied by the plugin APIs.
 2. Backoffice login loads the installed extensions and authenticated plugin API.
-3. The settings dashboard saves a public domain, persists it after reload, and
-   rejects URLs containing a path.
+3. The Siteimprove dashboard in Settings saves a public domain, persists it after
+   reload, and rejects URLs containing a path.
 4. Switching documents sends the mapped URL; leaving content clears stale context.
 5. Unpublished content clears live-page context; publishing refreshes the live URL.
 6. Published and never-published previews render with the preview script.

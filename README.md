@@ -37,8 +37,8 @@ Saving or publishing refreshes that URL; leaving the document clears it.
 For multilingual content, the selected culture is passed to Umbraco's URL provider.
 In split view the single assistant uses the first (left-hand) culture.
 
-Administrators can grant the **Siteimprove** section to their user group and set
-a public domain there. Use an HTTP or HTTPS origin such as
+Administrators with access to **Settings** can open its **Siteimprove** tab and
+set a public domain there. Use an HTTP or HTTPS origin such as
 `https://www.example.com`; leave it blank to retain Umbraco's published URLs.
 The scheme, hostname, and port are replaced while the page path is preserved.
 The original `SiteimprovePublicUrl` database key is retained.

@@ -111,7 +111,7 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         await screenshot(page, testInfo, "authenticated-backoffice");
     });
 
-    await test.step("create published and unpublished pages in the real CMS and grant the admin settings section", async () => {
+    await test.step("create published and unpublished pages in the real CMS", async () => {
         const templateId = randomUUID(), pageTypeId = randomUUID(), homeTypeId = randomUUID();
         const dataTypeId = randomUUID(), containerId = randomUUID();
         await api("data-type", { method: "POST", data: {
@@ -147,20 +147,17 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         draft = await createDocument("Draft Page", pageTypeId, templateId, home, false);
         previewDraft = await createDocument("Preview Draft", pageTypeId, templateId, home, false);
         groups = (await json("user-group?skip=0&take=100")).items;
-        const adminSummary = groups.find(g => g.alias === "admin" || /administrators/i.test(g.name));
-        expect(adminSummary).toBeTruthy();
-        const admin = await json("user-group/" + adminSummary.id);
-        await api("user-group/" + admin.id, { method: "PUT", data: {
-            ...admin, sections: [...new Set([...admin.sections, "siteimprovePublicUrlSection"])]
-        } });
         writer = groups.find(g => /writers|editors/i.test(g.name));
         expect(writer).toBeTruthy();
         await page.reload();
         await expect(page.locator("umb-backoffice")).toBeVisible();
     });
 
-    await test.step("settings UI saves and persists a public domain and rejects a path", async () => {
-        await navigate(page, "/umbraco/section/siteimprove/dashboard/public-url");
+    await test.step("Siteimprove lives in Settings and saves a public domain without a custom section grant", async () => {
+        await navigate(page, "/umbraco/section/settings");
+        await expect(page.locator("umb-backoffice-header").getByText("Siteimprove", { exact: true })).toHaveCount(0);
+        await page.locator('[href$="dashboard/siteimprove"]').first().click();
+        await expect(page).toHaveURL(/\/umbraco\/section\/settings\/dashboard\/siteimprove$/);
         await expect(page.locator("siteimprove-settings")).toBeVisible();
         const input = page.getByLabel("Public domain", { exact: true });
         await expect(input).toBeEnabled();
@@ -181,7 +178,7 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         await expect.poll(() => lastCommand(page)).toEqual(["input", PUBLIC_ORIGIN + "/first-page/", ""]);
         await navigate(page, documentPath(second));
         await expect.poll(() => lastCommand(page)).toEqual(["input", PUBLIC_ORIGIN + "/second-page/", ""]);
-        await navigate(page, "/umbraco/section/siteimprove/dashboard/public-url");
+        await navigate(page, "/umbraco/section/settings/dashboard/siteimprove");
         await expect(page.locator("siteimprove-settings")).toBeVisible();
         await expect.poll(() => lastCommand(page)).toEqual(["clear", ""]);
     });

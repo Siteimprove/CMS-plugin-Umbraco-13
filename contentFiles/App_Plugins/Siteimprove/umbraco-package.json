@@ -22,36 +22,18 @@
       ]
     },
     {
-      "type": "section",
-      "alias": "siteimprovePublicUrlSection",
-      "name": "Siteimprove",
+      "type": "dashboard",
+      "alias": "Siteimprove.PublicUrlDashboard",
+      "name": "Siteimprove public URL",
+      "element": "/App_Plugins/Siteimprove/settings.element.js",
       "meta": {
         "label": "Siteimprove",
         "pathname": "siteimprove"
       },
       "conditions": [
         {
-          "alias": "Umb.Condition.SectionUserPermission",
-          "match": "siteimprovePublicUrlSection"
-        },
-        {
-          "alias": "Umb.Condition.CurrentUser.IsAdmin"
-        }
-      ]
-    },
-    {
-      "type": "dashboard",
-      "alias": "Siteimprove.PublicUrlDashboard",
-      "name": "Siteimprove public URL",
-      "element": "/App_Plugins/Siteimprove/settings.element.js",
-      "meta": {
-        "label": "Public URL",
-        "pathname": "public-url"
-      },
-      "conditions": [
-        {
           "alias": "Umb.Condition.SectionAlias",
-          "match": "siteimprovePublicUrlSection"
+          "match": "Umb.Section.Settings"
         },
         {
           "alias": "Umb.Condition.CurrentUser.IsAdmin"
