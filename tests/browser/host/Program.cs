@@ -11,8 +11,7 @@ builder.Services.Configure<Umbraco.Cms.Web.Common.ApplicationBuilder.UmbracoPipe
         postPipeline: app => app.Use(async (context, next) =>
         {
             var path = context.Request.Path.Value ?? "";
-            var trace = path.Contains("preview", StringComparison.OrdinalIgnoreCase)
-                || path.Contains("first-page") || path.Contains("preview-draft");
+            var trace = context.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase);
             await next(context);
             if (trace)
             {

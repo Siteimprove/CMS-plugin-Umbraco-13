@@ -22,6 +22,8 @@ export default defineConfig({
         url: "http://localhost:5017/umbraco/login",
         timeout: 180000,
         reuseExistingServer: false,
+        stdout: "pipe",
+        stderr: "pipe",
         env: {
             ASPNETCORE_URLS: "http://localhost:5017",
             ASPNETCORE_ENVIRONMENT: "Development",
