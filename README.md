@@ -108,3 +108,7 @@ published assets. It uploads the alpha package as an artifact and does not publi
 a NuGet package or create a release. See [docs/VALIDATION.md](docs/VALIDATION.md)
 for the acceptance checks needed before release.
 
+Chromium functionality tests also run against a real Umbraco installation in CI.
+See [docs/BROWSER-TESTS.md](docs/BROWSER-TESTS.md) for verified behavior, the
+Playwright report/trace, and local execution instructions.
+

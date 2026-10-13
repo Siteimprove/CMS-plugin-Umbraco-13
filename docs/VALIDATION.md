@@ -26,6 +26,12 @@ current patched Umbraco releases.
 
 ## Release acceptance (pending)
 
+The standalone Chromium browser flow passed on a real Umbraco 17.7.1
+installation, including settings, navigation, publishing, both kinds of preview,
+highlighting callbacks, permissions, and saving while the CDN is blocked.
+See [BROWSER-TESTS.md](BROWSER-TESTS.md) for evidence, reproducible commands, and
+the boundary between browser integration tests and live Siteimprove acceptance.
+
 Run this checklist on an Umbraco 17 Cloud development environment and on a
 self-hosted Umbraco 17 site, using a working Siteimprove account.
 
