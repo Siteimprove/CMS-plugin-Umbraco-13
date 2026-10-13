@@ -5,6 +5,15 @@ The same NuGet package is intended
 for Umbraco Cloud and self-hosted Umbraco. It is an alpha until the acceptance
 checks in [docs/VALIDATION.md](docs/VALIDATION.md) have passed in both environments.
 
+## Documentation
+
+- [Installation and upgrade](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/port/umbraco-17/docs/INSTALLATION.md): obtain the alpha package,
+  install through NuGet, deploy on Cloud or self-hosted sites, and upgrade from v13.
+- [Usage, configuration, and troubleshooting](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/port/umbraco-17/docs/USAGE.md): editor workflows,
+  **Settings → Siteimprove**, domain overrides, and common problems.
+- [Browser test results](docs/BROWSER-TESTS.md) and
+  [release acceptance](docs/VALIDATION.md): verified behavior and remaining checks.
+
 ## Install
 
 Build the package, then install it in an Umbraco 17 site:
