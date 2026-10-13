@@ -13,6 +13,7 @@ hosting or the vendor's live service.
 | Medium | Queued context callbacks could access workspace data after teardown. | Register the context through `UmbContextBase`, provide a dedicated identity, and guard callbacks after destruction. Tests cover disposed workspace callbacks; Playwright uses native menu/tree navigation. |
 | Medium | A pending version request could initialize the assistant after logout, teardown, or replacement of the backoffice instance. | Guard initialization with the current controller and authentication sequence. Tests cover unload, replacement, loss of authentication, and stale failures. |
 | Medium | Version literals in the project, test host, and installation script could diverge; the package smoke test selected the first archive in the output directory. | Use `Directory.Build.props` for the package/test-host version. Shared metadata checks detect manifest drift, and package verification selects the exact current-version archive and verifies its metadata. |
+| Medium | The browser navigation helper treated API/network completion as editor readiness. It could tear down a workspace while its view route was still rendering. | Use native menu/tree navigation and wait for the target document's visible text field and enabled publish action. The test uses the unmodified CMS assets and continues to reject all browser errors. |
 
 Beta.1 remains an immutable earlier build; beta.2 contains these fixes.
 
@@ -37,6 +38,11 @@ continue to use Umbraco's import map.
 - Verify the customer's Cloud or self-hosted deployment, languages/site domains,
   CSP/proxy, and upgraded database. Automated checks use Linux/Chromium and a
   disposable local CMS.
+- Fast navigation before an editor finishes rendering exposed a destroyed
+  Umbraco workspace view in the fixture. The shipped view controller explicitly
+  clears `provideAt` on destruction; a pending route tried to call it afterward.
+  The browser flow now waits for rendered editor readiness. Check fast navigation
+  in the customer's CMS as part of acceptance; no CMS code patch is shipped.
 - Preview HTML is buffered in memory. Measure very large rendered previews
   before wider rollout; a buffer limit or disk-backed buffering would be a
   separate change if customer workloads need it.

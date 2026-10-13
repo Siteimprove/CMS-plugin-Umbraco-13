@@ -53,7 +53,13 @@ async function navigate(page, path) {
             await page.locator('umb-document-tree uui-menu-item[label="Home"] button#caret-button').click();
         }
         await target.click();
-        expect((await documentLoaded).status()).toBe(200);
+        const response = await documentLoaded;
+        expect(response.status()).toBe(200);
+        const document = await response.json();
+        const text = document.values.find(value => value.alias === "text").value;
+        await expect(page.locator("umb-property-editor-ui-text-box input")).toBeVisible();
+        await expect(page.locator("umb-property-editor-ui-text-box input")).toHaveValue(text);
+        await expect(page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPublish")).toBeEnabled();
         await page.waitForLoadState("networkidle");
     } else if (path.endsWith("/dashboard/siteimprove")) {
         await page.locator('[href$="dashboard/siteimprove"]').first().click();
@@ -91,28 +97,11 @@ async function previewFrame(popup) {
 
 test("real Umbraco backoffice and preview lifecycle", async ({ page, context, request, browser }, testInfo) => {
     const errors = [];
-    page.on("pageerror", async error => {
+    page.on("pageerror", error => {
         errors.push(error.message);
         console.log("Backoffice browser error", JSON.stringify({
             path: new URL(page.url()).pathname, message: error.message, stack: error.stack
         }));
-        if (error.message.includes("provideAt")) {
-            const source = error.stack?.match(/(http:\/\/localhost:5017\/[^ )\n]+\.js):(\d+):\d+/);
-            if (source) {
-                const response = await page.request.get(source[1]);
-                const lines = (await response.text()).split("\n");
-                const line = Number(source[2]);
-                console.log("Router source diagnostics", JSON.stringify(lines.slice(Math.max(0,line-6),line+5)));
-            }
-            const views = await page.locator("umb-workspace-editor").evaluateAll(elements => elements.map(element => ({
-                tag: element.localName,
-                views: (element._workspaceViews || []).map(view => ({
-                    alias: view.manifest?.alias, constructor: view.constructor?.name,
-                    provideAt: typeof view.provideAt, keys: Object.keys(view).slice(0,15)
-                }))
-            })));
-            console.log("Workspace view diagnostics", JSON.stringify(views));
-        }
     });
     let token;
     page.on("request", r => {
@@ -120,15 +109,6 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         if (r.url().includes(API) && bearer?.startsWith("Bearer ")) token = bearer;
     });
     await mockOverlay(context);
-    await context.route("**/packages/core/workspace/index.js", async route => {
-        const response = await route.fetch();
-        const source = await response.text();
-        const probe = '(typeof t.provideAt !== "function" && console.log("INVALID_WORKSPACE_VIEW " + JSON.stringify({constructor:t.constructor?.name,alias:t.manifest?.alias,keys:Object.keys(t),prototype:Object.getOwnPropertyNames(Object.getPrototypeOf(t))})), t.provideAt(a))';
-        await route.fulfill({ response, body: source.replace("t.provideAt(a)", probe) });
-    });
-    page.on("console", message => {
-        if (message.text().startsWith("INVALID_WORKSPACE_VIEW")) console.log(message.text());
-    });
     async function api(path, options = {}) {
         const response = await page.request.fetch(API + path, {
             ...options, headers: { Authorization: token, ...options.headers }
