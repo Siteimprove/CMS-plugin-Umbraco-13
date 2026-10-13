@@ -35,7 +35,7 @@ the boundary between browser integration tests and live Siteimprove acceptance.
 Run this checklist on an Umbraco 17 Cloud development environment and on a
 self-hosted Umbraco 17 site, using a working Siteimprove account.
 
-1. Install the built alpha package in a clean v17 site and one upgraded from v13.
+1. Install the built beta package in a clean v17 site and one upgraded from v13.
    Verify the v13 database domain setting is retained and legacy assets removed.
 2. Log in: the assistant appears once, and no browser/module errors occur.
    Log out/in and confirm no stale document context remains.

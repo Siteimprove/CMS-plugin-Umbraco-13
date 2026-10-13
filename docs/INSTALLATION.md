@@ -1,7 +1,7 @@
 # Installation and upgrade
 
 This guide installs `Siteimprove.Umbraco17.Plugin` into an existing Umbraco site.
-The current package is `1.0.0-alpha.1` and has not been published to NuGet.org.
+The current package is `1.0.0-beta.1` and has not been published to NuGet.org.
 Cloud and self-hosted sites use the same package. Actual Cloud/Windows deployment
 and live Siteimprove acceptance remain pending; see [validation](VALIDATION.md).
 
@@ -18,12 +18,16 @@ The .NET 10 SDK is needed on build machines and for local development.
 Self-hosted servers need the appropriate .NET 10 runtime/hosting setup unless
 the application is published self-contained. No plugin npm build is required.
 
-## 1. Obtain the alpha package
+## 1. Obtain the beta package
 
-Download **Siteimprove-Umbraco17-preview** from the
-[verified workflow run](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38460301904).
-GitHub may require you to sign in to download artifacts. Extract the ZIP and
-locate `Siteimprove.Umbraco17.Plugin.1.0.0-alpha.1.nupkg`.
+Use the customer beta ZIP supplied by Siteimprove, or download
+**Siteimprove-Umbraco17-beta** from a successful beta validation run on the
+[port branch](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions?query=branch%3Aport%2Fumbraco-17).
+GitHub may require you to sign in to download artifacts. Extract the artifact ZIP
+and then the customer ZIP inside it. The customer ZIP includes
+`Siteimprove.Umbraco17.Plugin.1.0.0-beta.1.nupkg`, installation/usage guides,
+beta notes, build information, and SHA-256 checksums. If you already have the
+customer ZIP directly, extract it once. See [beta notes](BETA.md).
 The Playwright evidence artifact is a test report, not the installable package.
 
 Alternatively, check out this repository's `port/umbraco-17` branch and run
@@ -54,7 +58,7 @@ your site uses; this is an example for a site using NuGet.org:
 ```
 
 For Cloud or another remote build, that source must also exist on the build
-machine. Either include the alpha package folder in the site repository or use
+machine. Either include the beta package folder in the site repository or use
 an internal NuGet feed that your deployment can restore from. Check your site's
 ignore rules: `packages/` and `*.nupkg` are often ignored. A workstation's absolute
 path will not work on a remote build machine. Configure feed credentials through
@@ -66,7 +70,7 @@ Run these commands from the site repository root, replacing the project path
 with the actual Umbraco web project:
 
 ```sh
-dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-alpha.1
+dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.1
 dotnet restore src/YourSite/YourSite.csproj
 dotnet build src/YourSite/YourSite.csproj -c Release
 ```
@@ -80,7 +84,7 @@ copy the browser files to `App_Plugins/Siteimprove` during builds and publicatio
 ### Umbraco Cloud
 
 Install and try the package in the site's local development checkout. Commit the
-project's package reference, NuGet configuration, and any repository-local alpha
+project's package reference, NuGet configuration, and any repository-local beta
 feed needed for restore. Deploy to a Cloud development environment through the
 site's normal Git/build process and complete the checks below before promoting.
 

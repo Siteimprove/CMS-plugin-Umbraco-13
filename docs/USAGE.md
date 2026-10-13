@@ -73,7 +73,7 @@ tree access. There is no plugin API key field in this dashboard.
 
 | Symptom | What to check |
 | --- | --- |
-| NuGet cannot find the alpha package | It is not on NuGet.org. Check the local/internal source contains the `.nupkg` and is available to the build machine. Preserve the sources needed for Umbraco dependencies. |
+| NuGet cannot find the beta package | It is not on NuGet.org. Check the local/internal source contains the `.nupkg` and is available to the build machine. Preserve the sources needed for Umbraco dependencies. |
 | An earlier alpha seems to remain installed | Alpha builds currently share a version. NuGet may reuse its cached `siteimprove.umbraco17.plugin/1.0.0-alpha.1` package. Locate the global cache with `dotnet nuget locals global-packages --list`, remove only that cached version, and restore from the intended artifact before rebuilding. |
 | Settings has no Siteimprove tab | Use an administrator account with Settings access. Confirm the package reference, deployed manifest, and JavaScript assets, then restart the site and reload the backoffice. |
 | The public domain field is read-only | `Siteimprove:PublicUrl` is supplied by application configuration, even if it is an empty string. Change/remove that override. |

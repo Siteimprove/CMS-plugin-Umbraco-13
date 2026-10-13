@@ -29,7 +29,7 @@ ET.SubElement(sources, "add", key="port", value=sys.argv[2])
 ET.SubElement(sources, "add", key="nuget", value="https://api.nuget.org/v3/index.json")
 ET.ElementTree(root).write(Path(sys.argv[1]) / "nuget.config", encoding="unicode")
 PY
-dotnet add "$TASK_SMOKE_DIR/Consumer.csproj" package Siteimprove.Umbraco17.Plugin --version 1.0.0-alpha.1
+dotnet add "$TASK_SMOKE_DIR/Consumer.csproj" package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.1
 dotnet build "$TASK_SMOKE_DIR/Consumer.csproj" -c Release
 dotnet publish "$TASK_SMOKE_DIR/Consumer.csproj" -c Release -o "$TASK_SMOKE_DIR/published"
 for asset in umbraco-package.json entrypoint.js api.js assistant.js document-context.js settings.element.js preview.js; do

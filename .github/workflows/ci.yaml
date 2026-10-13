@@ -30,7 +30,7 @@ jobs:
         run: bash scripts/verify-package.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: Siteimprove-Umbraco17-preview
+          name: Siteimprove-Umbraco17-package
           path: artifacts/*.nupkg
       - name: Prepare real Umbraco browser-test host and Chromium
         run: bash scripts/prepare-browser-tests.sh
@@ -38,6 +38,18 @@ jobs:
         run: |
           export E2E_ADMIN_PASSWORD="$(node -e "process.stdout.write('E2e!' + require('node:crypto').randomBytes(24).toString('hex'))")"
           npm --prefix tests/browser test
+      - name: Create verified customer beta bundle
+        env:
+          BETA_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 scripts/create-beta-bundle.py
+      - name: Upload customer beta bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Siteimprove-Umbraco17-beta
+          path: |
+            artifacts/*.customer.zip
+            artifacts/*.customer.zip.sha256
+          if-no-files-found: error
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
