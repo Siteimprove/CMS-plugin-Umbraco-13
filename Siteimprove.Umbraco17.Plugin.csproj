@@ -16,14 +16,15 @@
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Umbraco.Cms.Api.Management" Version="[17.0.0,18.0.0)" />
-    <PackageReference Include="Umbraco.Cms.Web.Website" Version="[17.0.0,18.0.0)" />
+    <PackageReference Include="Umbraco.Cms.Api.Management" Version="[17.7.1,18.0.0)" />
+    <PackageReference Include="Umbraco.Cms.Web.Website" Version="[17.7.1,18.0.0)" />
     <Compile Remove="tests/**" />
     <None Update="README.md" Pack="true" PackagePath="/" />
     <None Remove="contentFiles/App_Plugins/Siteimprove/**/*" />
     <Content Include="contentFiles/App_Plugins/Siteimprove/**/*" Pack="true"
-             PackagePath="contentFiles/any/any/App_Plugins/Siteimprove/%(RecursiveDir)"
+             PackagePath="contentFiles/any/any/App_Plugins/Siteimprove/%(RecursiveDir)%(Filename)%(Extension)"
              BuildAction="None" />
-    <None Update="buildTransitive/**" Pack="true" PackagePath="buildTransitive/" />
+    <None Update="buildTransitive/Siteimprove.Umbraco17.Plugin.targets" Pack="true"
+          PackagePath="buildTransitive/Siteimprove.Umbraco17.Plugin.targets" />
   </ItemGroup>
 </Project>

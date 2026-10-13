@@ -1,6 +1,7 @@
 # Siteimprove Content Assistant for Umbraco 17
 
-This port targets Umbraco CMS 17 and .NET 10. The same NuGet package is intended
+This port targets Umbraco CMS 17.7.1 or later in the 17.x series and .NET 10.
+The same NuGet package is intended
 for Umbraco Cloud and self-hosted Umbraco. It is an alpha until the acceptance
 checks in [docs/VALIDATION.md](docs/VALIDATION.md) have passed in both environments.
 

@@ -3,20 +3,24 @@
 Upstream baseline: Siteimprove/CMS-plugin-Umbraco-13 commit
 `2f376ce445956dc8ee65fb0ed75cde5d96901767`.
 API and extension contracts were checked against Umbraco's
-`release-17.0.0` source.
+`release-17.0.0` source. The initial baseline build passed 23 backend tests.
+The package now requires 17.7.1 or later in 17.x, the latest stable v17 release
+at implementation time. Restoring the original 17.0.0 dependency baseline raised
+NuGet vulnerability warnings for its transitive packages; consumers should use
+current patched Umbraco releases.
 
 ## Automated checks
 
 - JavaScript: 13 regression tests passed locally using Node 24, covering refreshed
   authentication tokens, custom backoffice paths, request errors, document
   changes, stale responses, teardown, and preview callbacks.
-- Backend: tests are provided for origin mapping, HTML escaping, preview gating,
+- Backend: 23 tests passed on GitHub Actions against the initial 17.0.0 baseline,
+  covering origin mapping, HTML escaping, preview gating,
   response headers/length, and stream restoration.
 - Packaging: a script installs the alpha NuGet package in a fresh .NET web project
   and checks development and published assets.
-- The editing workspace has no .NET SDK, and its shell network connection could
-  not reach the proxy. Backend build/tests and package installation have not been
-  run locally. The GitHub workflow provides these checks.
+- The editing workspace has no .NET SDK, so backend checks run on GitHub Actions.
+  Final 17.7.1 build and package installation validation are in progress.
 
 ## Release acceptance (pending)
 
