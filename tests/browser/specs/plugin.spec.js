@@ -97,6 +97,13 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
             path: new URL(page.url()).pathname, message: error.message, stack: error.stack
         }));
         if (error.message.includes("provideAt")) {
+            const source = error.stack?.match(/(http:\/\/localhost:5017\/[^ )\n]+\.js):(\d+):\d+/);
+            if (source) {
+                const response = await page.request.get(source[1]);
+                const lines = (await response.text()).split("\n");
+                const line = Number(source[2]);
+                console.log("Router source diagnostics", JSON.stringify(lines.slice(Math.max(0,line-6),line+5)));
+            }
             const views = await page.locator("umb-workspace-editor").evaluateAll(elements => elements.map(element => ({
                 tag: element.localName,
                 views: (element._workspaceViews || []).map(view => ({
