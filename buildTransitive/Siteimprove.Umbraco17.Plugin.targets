@@ -5,6 +5,14 @@
              CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"
              Visible="false" />
   </ItemGroup>
+  <!-- Web SDK includes JSON copied into the project as Content on later builds.
+       Use the package's Content items once, avoiding duplicate publish paths. -->
+  <Target Name="RemoveSiteimproveDuplicateProjectAssets" BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <Content Remove="App_Plugins/Siteimprove/**/*;$(MSBuildProjectDirectory)/App_Plugins/Siteimprove/**/*" />
+      <None Remove="App_Plugins/Siteimprove/**/*;$(MSBuildProjectDirectory)/App_Plugins/Siteimprove/**/*" />
+    </ItemGroup>
+  </Target>
   <Target Name="CopySiteimproveDevelopmentAssets" BeforeTargets="BeforeBuild">
     <ItemGroup>
       <SiteimproveAssets Include="$(MSBuildThisFileDirectory)../contentFiles/any/any/App_Plugins/Siteimprove/**/*" />
