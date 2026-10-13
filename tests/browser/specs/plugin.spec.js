@@ -47,6 +47,14 @@ async function navigate(page, path) {
         }
         await page.waitForLoadState("networkidle");
     }
+    if (documentId && new URL(page.url()).pathname.includes("/workspace/document/edit/")
+        && !new URL(page.url()).pathname.includes("/edit/" + documentId + "/")) {
+        // Close the previous workspace instead of reusing its pending publishing
+        // context. The CMS-only rapid-navigation control below records that edge.
+        await page.evaluate(() => history.pushState(null, "", "/umbraco/section/content"));
+        await expect(page.locator("umb-document-workspace")).toHaveCount(0);
+        await page.waitForLoadState("networkidle");
+    }
     await page.evaluate(path => history.pushState(null, "", path), path);
     if (documentLoaded) {
         expect((await documentLoaded).status()).toBe(200);
@@ -319,6 +327,40 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         expect(offlineErrors).toEqual([]);
         await screenshot(offlinePage, testInfo, "editor-with-overlay-blocked");
         await offlineContext.close();
+    });
+    await test.step("CMS-only rapid-navigation control disables all Siteimprove backoffice extensions", async () => {
+        const controlContext = await browser.newContext();
+        await controlContext.route(/\/manifest\/manifest\/(public|private)$/, async route => {
+            const response = await route.fetch();
+            const manifests = await response.json();
+            await route.fulfill({ response, json: manifests.filter(m => m.name !== "Siteimprove Content Assistant") });
+        });
+        const controlPage = await controlContext.newPage();
+        const controlErrors = [], pluginRequests = [];
+        controlPage.on("pageerror", e => controlErrors.push({ message: e.message, stack: e.stack }));
+        controlPage.on("request", r => {
+            if (r.url().includes("/siteimprove/") || r.url().includes("/App_Plugins/Siteimprove/")
+                || r.url() === OVERLAY) pluginRequests.push(r.url());
+        });
+        await login(controlPage);
+        for (let i = 0; i < 12; i++) {
+            const id = i % 2 ? second : first;
+            await controlPage.evaluate(path => history.pushState(null, "", path), documentPath(id));
+            await expect(controlPage.locator("umb-property-editor-ui-text-box input"))
+                .toHaveValue(i % 2 ? "Preview content for Second Page" : "Edited while the Siteimprove overlay was blocked");
+        }
+        await controlPage.waitForLoadState("networkidle");
+        expect(pluginRequests).toEqual([]);
+        const unexpected = controlErrors.filter(e =>
+            e.message !== "Persisted and published data does not have the same unique"
+            || !e.stack?.includes("/packages/documents/document-publishing.workspace-context-"));
+        expect(unexpected).toEqual([]);
+        console.log("CMS-only control: Siteimprove requests=" + pluginRequests.length
+            + ", upstream publishing errors=" + controlErrors.length);
+        await testInfo.attach("cms-only-navigation-control", {
+            body: JSON.stringify({ pluginRequests, controlErrors }, null, 2), contentType: "application/json"
+        });
+        await controlContext.close();
     });
     expect(errors).toEqual([]);
 });

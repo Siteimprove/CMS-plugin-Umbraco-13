@@ -45,6 +45,11 @@ The browser flow checks:
     A branch-restricted editor can resolve its allowed document but cannot resolve
     a sibling outside that branch through either the CMS or plugin API.
 11. Blocking Siteimprove's CDN still permits editing, saving and publishing content.
+12. A CMS-only rapid-navigation control removes Siteimprove's backoffice manifests
+    and verifies that no plugin modules, APIs, or overlay requests run. It records
+    the known Umbraco publishing-state mismatch if reproduced. Only that exact
+    error from Umbraco's publishing context is accepted in the control; the main
+    plugin flow still fails on any browser error.
 
 Screenshots and a Playwright trace are retained in the GitHub workflow's
 `Siteimprove-Playwright-evidence` artifact. The trace records a temporary local test
