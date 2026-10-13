@@ -83,7 +83,8 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         await api("document", { method: "POST", data: {
             id, parent: parentId ? { id: parentId } : null,
             documentType: { id: typeId }, template: { id: templateId },
-            values: [], variants: [{ culture: null, segment: null, name }]
+            values: [{ alias: "text", culture: null, segment: null, value: "Preview content for " + name }],
+            variants: [{ culture: null, segment: null, name }]
         } });
         if (published) await api("document/" + id + "/publish", {
             method: "PUT", data: { publishSchedules: [{ culture: null }] }
@@ -112,6 +113,11 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
 
     await test.step("create published and unpublished pages in the real CMS and grant the admin settings section", async () => {
         const templateId = randomUUID(), pageTypeId = randomUUID(), homeTypeId = randomUUID();
+        const dataTypeId = randomUUID(), containerId = randomUUID();
+        await api("data-type", { method: "POST", data: {
+            id: dataTypeId, name: "Browser Test Text", editorAlias: "Umbraco.TextBox",
+            editorUiAlias: "Umb.PropertyEditorUi.TextBox", values: []
+        } });
         await api("template", { method: "POST", data: {
             id: templateId, name: "Browser Test", alias: "BrowserTest",
             content: '@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage\n<!doctype html><html><head><title>@Model.Name</title></head><body><h1>@Model.Name</h1><p class="content">Preview content for @Model.Name</p><a href="/second-page/">Second page</a></body></html>'
@@ -119,12 +125,20 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         const type = {
             alias: "browserTestPage", name: "Browser Test Page", icon: "icon-document",
             allowedAsRoot: false, variesByCulture: false, variesBySegment: false, isElement: false,
-            properties: [], containers: [], compositions: [], allowedTemplates: [{ id: templateId }],
+            properties: [{ id: randomUUID(), alias: "text", name: "Text", sortOrder: 0,
+                dataType: { id: dataTypeId }, container: { id: containerId },
+                variesByCulture: false, variesBySegment: false,
+                validation: { mandatory: false }, appearance: { labelOnTop: false } }],
+            containers: [{ id: containerId, name: "Content", type: "Group", sortOrder: 0 }],
+            compositions: [], allowedTemplates: [{ id: templateId }],
             defaultTemplate: { id: templateId }, cleanup: { preventCleanup: true }
         };
         await api("document-type", { method: "POST", data: { ...type, id: pageTypeId, allowedDocumentTypes: [] } });
+        const homeContainerId = randomUUID();
         await api("document-type", { method: "POST", data: {
             ...type, id: homeTypeId, alias: "browserTestHome", name: "Browser Test Home", allowedAsRoot: true,
+            properties: type.properties.map(p => ({ ...p, id: randomUUID(), container: { id: homeContainerId } })),
+            containers: type.containers.map(c => ({ ...c, id: homeContainerId })),
             allowedDocumentTypes: [{ documentType: { id: pageTypeId }, sortOrder: 0 }]
         } });
         home = await createDocument("Home", homeTypeId, templateId, null, true);
@@ -143,6 +157,7 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         expect(writer).toBeTruthy();
         await page.reload();
         await expect(page.locator("umb-backoffice")).toBeVisible();
+        console.log("Seeded document template", JSON.stringify((await json("document/" + first)).template));
     });
 
     await test.step("settings UI saves and persists a public domain and rejects a path", async () => {

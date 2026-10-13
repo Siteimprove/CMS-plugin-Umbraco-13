@@ -18,7 +18,7 @@ builder.Services.Configure<Umbraco.Cms.Web.Common.ApplicationBuilder.UmbracoPipe
                 var accessor = context.RequestServices.GetRequiredService<Umbraco.Cms.Core.Web.IUmbracoContextAccessor>();
                 var hasContext = accessor.TryGetUmbracoContext(out var umbracoContext);
                 var preview = context.RequestServices.GetRequiredService<Umbraco.Cms.Core.Services.IPreviewService>().IsInPreview();
-                Console.WriteLine($"Browser preview diagnostics path={path} status={context.Response.StatusCode} type={context.Response.ContentType} encoding={context.Response.Headers.ContentEncoding} accept={context.Request.Headers.Accept} verified={preview} context={hasContext} mode={umbracoContext?.InPreviewMode} routed={umbracoContext?.PublishedRequest?.PublishedContent is not null}");
+                Console.WriteLine($"Browser preview diagnostics path={path} status={context.Response.StatusCode} type={context.Response.ContentType} encoding={context.Response.Headers.ContentEncoding} verified={preview} context={hasContext} mode={umbracoContext?.InPreviewMode} node={umbracoContext?.PublishedRequest?.PublishedContent?.Key} template={umbracoContext?.PublishedRequest?.Template?.Alias} nodeTemplateId={umbracoContext?.PublishedRequest?.PublishedContent?.TemplateId}");
             }
         }))));
 
