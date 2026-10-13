@@ -2,7 +2,7 @@
 
 This port targets Umbraco CMS 17.7.1 or later in the 17.x series and .NET 10.
 The same NuGet package is intended
-for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.1** is for customer
+for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.2** is for customer
 acceptance testing. Stable release awaits
 the checks in [docs/VALIDATION.md](docs/VALIDATION.md) in both environments.
 
@@ -24,7 +24,7 @@ Build the package, then install it in an Umbraco 17 site:
 
 ```sh
 dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
-dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.1 --source /absolute/path/to/artifacts
+dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.2 --source /absolute/path/to/artifacts
 ```
 
 The second command selects the local feed. Restore the site with its normal
@@ -70,7 +70,8 @@ Environment configuration takes precedence over the database value:
 Omit `PublicUrl` to use the database value. Set it to `""` to force unmodified
 Umbraco URLs for that environment. When configured, the dashboard displays a
 read-only value. Settings endpoints require administrator access; document URL
-endpoints require backoffice authentication and access to the document tree.
+endpoints require backoffice authentication, access to the document tree, and
+browse permission for the requested document.
 
 ### Umbraco Cloud
 

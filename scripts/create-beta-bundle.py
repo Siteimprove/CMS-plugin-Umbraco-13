@@ -7,11 +7,11 @@ from pathlib import Path
 import subprocess
 import xml.etree.ElementTree as ET
 import zipfile
+from package_metadata import package_version
 
 root = Path(__file__).resolve().parent.parent
-version = ET.parse(root / "Siteimprove.Umbraco17.Plugin.csproj").findtext("./PropertyGroup/Version")
-manifest = json.loads((root / "contentFiles/App_Plugins/Siteimprove/umbraco-package.json").read_text())
-if not version or "-beta." not in version or manifest["version"] != version:
+version = package_version(root)
+if "-beta." not in version:
     raise ValueError("Expected matching beta versions in the project and backoffice manifest.")
 
 package_name = f"Siteimprove.Umbraco17.Plugin.{version}.nupkg"
@@ -26,7 +26,7 @@ with zipfile.ZipFile(package) as archive:
         raise ValueError("Packaged backoffice manifest has the wrong version.")
 
 files = {package_name: package.read_bytes(), "README.md": (root / "README.md").read_bytes()}
-for name in ["INSTALLATION.md", "USAGE.md", "BETA.md", "BROWSER-TESTS.md", "VALIDATION.md"]:
+for name in ["INSTALLATION.md", "USAGE.md", "BETA.md", "BROWSER-TESTS.md", "VALIDATION.md", "REVIEW.md"]:
     files[f"docs/{name}"] = (root / "docs" / name).read_bytes()
 files["START-HERE.md"] = (
     f"# Siteimprove for Umbraco 17 — {version}\n\n"

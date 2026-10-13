@@ -5,7 +5,10 @@ using Siteimprove.Umbraco17.Plugin.Services;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Configuration;
+using Umbraco.Cms.Core.Actions;
+using Umbraco.Cms.Core.Security.Authorization;
 using Umbraco.Cms.Web.Common.Authorization;
+using Umbraco.Extensions;
 
 namespace Siteimprove.Umbraco17.Plugin.Controllers;
 
@@ -14,7 +17,8 @@ namespace Siteimprove.Umbraco17.Plugin.Controllers;
 [ApiExplorerSettings(GroupName = "Siteimprove")]
 public sealed class SiteimproveController(
     ISiteimprovePublicUrlService publicUrlService,
-    IUmbracoVersion umbracoVersion) : ManagementApiControllerBase
+    IUmbracoVersion umbracoVersion,
+    IAuthorizationService authorizationService) : ManagementApiControllerBase
 {
     [HttpGet("public-url")]
     [Authorize(Policy = AuthorizationPolicies.RequireAdminAccess)]
@@ -39,6 +43,11 @@ public sealed class SiteimproveController(
     [Authorize(Policy = AuthorizationPolicies.TreeAccessDocuments)]
     public async Task<IActionResult> PageUrl(Guid id, [FromQuery] string? culture)
     {
+        var permission = ContentPermissionResource.WithKeys(ActionBrowse.ActionLetter, id);
+        var authorization = await authorizationService.AuthorizeResourceAsync(
+            User, permission, AuthorizationPolicies.ContentPermissionByResource);
+        if (!authorization.Succeeded) return Forbid();
+
         var url = await publicUrlService.GetPageUrlAsync(id, culture);
         return Ok(new { url });
     }

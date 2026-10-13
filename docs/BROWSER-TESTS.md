@@ -42,6 +42,8 @@ The browser flow checks:
 8. The preview shell loads no duplicate overlay; the rendered iframe loads one.
 9. Ordinary public pages receive no preview injection.
 10. A non-admin account is denied settings read/write access.
+    A branch-restricted editor can resolve its allowed document but cannot resolve
+    a sibling outside that branch through either the CMS or plugin API.
 11. Blocking Siteimprove's CDN still permits editing, saving and publishing content.
 
 Screenshots and a Playwright trace are retained in the GitHub workflow's

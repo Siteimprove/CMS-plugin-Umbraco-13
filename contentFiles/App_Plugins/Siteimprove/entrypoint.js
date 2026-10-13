@@ -10,13 +10,18 @@ export function onInit(host) {
     if (host.getHostElement?.().localName === "umb-preview") return;
     controller?.destroy();
     controller = new UmbControllerBase(host);
+    const activeController = controller;
+    let authSequence = 0;
     controller.consumeContext(UMB_AUTH_CONTEXT, async auth => {
-        if (!auth) return;
+        const sequence = ++authSequence;
+        if (!auth) { assistant.clear(); return; }
         try {
             const { version } = await new SiteimproveApi(auth).version();
+            if (controller !== activeController || sequence !== authSequence) return;
             await loadOverlay(version);
         } catch (error) {
-            console.warn("Siteimprove: " + error.message);
+            if (controller === activeController && sequence === authSequence)
+                console.warn("Siteimprove: " + error.message);
         }
     });
 }

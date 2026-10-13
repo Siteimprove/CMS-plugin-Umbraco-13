@@ -67,7 +67,8 @@ all applicable configuration providers, including environment variables.
 
 Non-admin users cannot read or change the domain through the plugin's API.
 The assistant's document URL API requires backoffice authentication and document
-tree access. There is no plugin API key field in this dashboard.
+tree access and browse permission for the requested document. There is no plugin
+API key field in this dashboard.
 
 ## Troubleshooting
 

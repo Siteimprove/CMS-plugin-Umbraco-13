@@ -251,6 +251,10 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
     });
 
     await test.step("a non-admin user cannot read or change settings", async () => {
+        const restrictedGroup = await json("user-group/" + writer.id);
+        await api("user-group/" + writer.id, { method: "PUT", data: {
+            ...restrictedGroup, documentStartNode: { id: first }, documentRootAccess: false
+        } });
         const response = await api("user", { method: "POST", data: {
             email: "writer@example.test", name: "Browser Test Writer", userName: "writer@example.test",
             kind: "Default", userGroupIds: [{ id: writer.id }]
@@ -271,6 +275,17 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
             const denied = await writerPage.request.fetch(API + "siteimprove/public-url", {
                 method, headers: { Authorization: writerToken },
                 ...(method === "PUT" ? { data: { publicUrl: "" } } : {})
+            });
+            expect(denied.status()).toBe(403);
+        }
+        const allowed = await writerPage.request.get(API + "siteimprove/document/" + first + "/url", {
+            headers: { Authorization: writerToken }
+        });
+        expect(allowed.status()).toBe(200);
+        expect((await allowed.json()).url).toBe(PUBLIC_ORIGIN + "/first-page/");
+        for (const endpoint of ["document/" + second, "siteimprove/document/" + second + "/url"]) {
+            const denied = await writerPage.request.get(API + endpoint, {
+                headers: { Authorization: writerToken }
             });
             expect(denied.status()).toBe(403);
         }
