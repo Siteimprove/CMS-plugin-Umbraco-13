@@ -38,7 +38,8 @@ async function navigate(page, path) {
         if (section === "content") {
             await expect(page.locator("umb-document-tree").getByText("Home", { exact: true })).toBeVisible();
         } else {
-            await expect(page.locator("umb-settings-welcome-dashboard")).toBeVisible();
+            // Umbraco remembers the last dashboard when returning to a section.
+            await expect(page.locator('[href$="dashboard/siteimprove"]').first()).toBeVisible();
         }
     }
     await page.evaluate(path => history.pushState(null, "", path), path);
