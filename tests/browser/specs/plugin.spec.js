@@ -40,11 +40,22 @@ async function screenshot(page, testInfo, name) {
     await testInfo.attach(name, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
 }
 async function previewFrame(popup) {
-    await expect.poll(async () => {
+    try { await expect.poll(async () => {
         for (const frame of popup.frames())
             if (await frame.locator("script[data-siteimprove-preview]").count()) return true;
         return false;
-    }).toBe(true);
+    }).toBe(true); }
+    catch (error) {
+        console.log("Preview diagnostics", JSON.stringify({
+            cookies: (await popup.context().cookies()).map(c => ({ name: c.name, secure: c.secure, sameSite: c.sameSite })),
+            frames: await Promise.all(popup.frames().map(f => f.evaluate(() => ({
+                path: location.pathname, title: document.title,
+                text: document.body?.textContent?.slice(0,800),
+                scripts: [...document.scripts].map(s => s.src)
+            })).catch(e => ({ error: e.message }))))
+        }));
+        throw error;
+    }
     for (const frame of popup.frames())
         if (await frame.locator("script[data-siteimprove-preview]").count()) return frame;
     throw new Error("No rendered preview with the plugin script.");
