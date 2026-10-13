@@ -3,12 +3,16 @@
 ## Verified result
 
 Passed on 2026-10-13 against source commit
-`9498febad094533b6fe7b2c571d551cae3d285c8`: the full Chromium flow completed
-in 40.1 seconds. The workflow also passed all 36 regression tests, package creation,
+`e99afc770ee4610e2c61b0e678716fc9c4df8034`: the full Chromium flow completed
+in 36.8 seconds. The workflow also passed all 36 regression tests, package creation,
 NuGet installation, and published asset checks.
 
 Workflow and evidence:
-https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38456212323
+https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38460301904
+
+The configuration now appears under **Settings → Siteimprove**, with no top-level
+Siteimprove section or custom user-group section grant. The browser test opens the
+tab through Settings and checks that Siteimprove is absent from the top menu.
 
 Testing found duplicate overlays in Umbraco's preview shell; the port now skips
 that shell and loads the assistant once in the rendered preview iframe.
