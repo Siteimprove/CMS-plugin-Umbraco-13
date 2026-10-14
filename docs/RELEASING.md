@@ -31,13 +31,32 @@ preserve the original ZIP and its checksum.
 
 ## Create the draft
 
-From this repository's root on `port/umbraco-17`, use an authenticated GitHub
-CLI account with repository release access. The script needs Python 3 and
+Use the validation workflow's manual draft option to prepare the release on
+GitHub's runner, with its repository token:
+
+```sh
+gh workflow run ci.yaml --repo Siteimprove/CMS-plugin-Umbraco-13 --ref port/umbraco-17 -f prepare_beta_draft=true
+```
+
+This option reuses the successful beta.2 build, checks its provenance, and
+creates a draft. It does not run the usual validation job or publish the draft.
+Normal workflow runs still use the existing validation job and read-only token.
+
+Alternatively, from this repository's root on `port/umbraco-17`, use an
+authenticated GitHub CLI account with repository release access. The script needs Python 3 and
 `unzip` and `sha256sum` (available on Linux). It verifies the run, bundle
 checksums, provenance, and package version before creating a **draft prerelease**:
 
 ```sh
 bash scripts/draft-beta-release.sh
+```
+
+If CLI artifact downloads fail, obtain the verified Actions artifact separately,
+extract its outer ZIP, and pass the directory containing the customer ZIP and
+its checksum. The script runs the same validation before creating the draft:
+
+```sh
+bash scripts/draft-beta-release.sh /absolute/path/to/extracted-artifact
 ```
 
 The script neither publishes the draft nor replaces an existing release.

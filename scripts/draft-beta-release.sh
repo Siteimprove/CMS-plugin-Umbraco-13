@@ -10,6 +10,11 @@ version=1.0.0-beta.2
 package="Siteimprove.Umbraco17.Plugin.${version}.nupkg"
 bundle="Siteimprove.Umbraco17.Plugin.${version}.customer.zip"
 
+if (( $# > 1 )); then
+    echo 'Usage: bash scripts/draft-beta-release.sh [extracted-artifact-directory]' >&2
+    exit 1
+fi
+
 for program in gh python3 unzip sha256sum; do
     command -v "$program" >/dev/null || { echo "Required command missing: $program" >&2; exit 1; }
 done
@@ -25,7 +30,12 @@ if run["status"] != "completed" or run["conclusion"] != "success" or run["headSh
 
 release_dir=$(mktemp -d)
 trap 'rm -rf "$release_dir"' EXIT
-gh run download "$run" --repo "$repo" --name Siteimprove-Umbraco17-beta --dir "$release_dir"
+if (( $# == 1 )); then
+    # Accept the same artifact downloaded separately when CLI download is unavailable.
+    cp -- "$1/$bundle" "$1/${bundle}.sha256" "$release_dir/"
+else
+    gh run download "$run" --repo "$repo" --name Siteimprove-Umbraco17-beta --dir "$release_dir"
+fi
 (cd "$release_dir" && sha256sum --check "${bundle}.sha256")
 unzip -q "$release_dir/$bundle" -d "$release_dir/bundle"
 (cd "$release_dir/bundle" && sha256sum --check SHA256SUMS)

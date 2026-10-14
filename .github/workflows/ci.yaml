@@ -4,6 +4,11 @@ on:
     branches: [master, main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      prepare_beta_draft:
+        description: Create a draft prerelease from the verified beta.2 artifacts
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -11,6 +16,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validate:
+    if: github.event_name != 'workflow_dispatch' || !inputs.prepare_beta_draft
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,5 +64,17 @@ jobs:
           path: |
             tests/browser/test-results/
             tests/browser/playwright-report/
-# Publishing is a separate release action after Cloud/on-premises acceptance.
+  prepare-beta-draft:
+    if: github.event_name == 'workflow_dispatch' && inputs.prepare_beta_draft
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create verified beta.2 draft prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/draft-beta-release.sh
+# Customer prerelease publication and stable release acceptance remain separate.
 
