@@ -1,13 +1,14 @@
-# Customer beta: 1.0.0-beta.4
+# Customer beta: 1.0.0-beta.5
 
 This beta ports Siteimprove Content Assistant to **Umbraco 17.7.1+ (17.x)** on
 **.NET 10**, for customer acceptance testing on Umbraco Cloud or self-hosted sites.
 It is not a stable release and is not published to NuGet.org.
 
-Beta.4 isolates unpublished draft results and resolves preview live URLs from published content and routing state,
+Beta.5 isolates unpublished draft results and resolves preview live URLs from published content and routing state,
 including renamed drafts and unpublished cultures. It hides the launcher and
 panel outside document editing and rendered preview while retaining draft checks.
-See [beta.4 changes](releases/1.0.0-beta.4.md) and [review findings](REVIEW.md).
+See [beta.5 changes](releases/1.0.0-beta.5.md) and [review findings](REVIEW.md).
+Beta.5 also hides controls after authentication expires and in non-content workspace modals, rejects stale observers, and supports HTTP backoffices.
 Opening or reloading an unpublished preview starts with no prior results. Run a
 content check to analyze that rendered draft; Recheck draft and highlighting remain
 available while the preview is open.
@@ -19,7 +20,7 @@ the v13 database setting. Installing it does not upgrade the CMS itself.
 
 ## Bundle contents
 
-- `Siteimprove.Umbraco17.Plugin.1.0.0-beta.4.nupkg`: installable NuGet package.
+- `Siteimprove.Umbraco17.Plugin.1.0.0-beta.5.nupkg`: installable NuGet package.
 - `START-HERE.md`, `README.md`, and `docs/`: installation, usage, beta notes,
   automated-test evidence, and acceptance guidance.
 - `release.json`: version, source commit, build commit, package checksum, and
@@ -27,12 +28,12 @@ the v13 database setting. Installing it does not upgrade the CMS itself.
 - `SHA256SUMS`: checksums of all the other files in the customer ZIP.
 
 The CI customer bundle is created only after regression tests, package
-installation/publish checks, and the full Chromium/Playwright flow pass.
+installation/publish checks, and the Chromium, Firefox and WebKit/Playwright flows pass.
 The exact beta run is recorded in its `release.json`.
 
 For an extracted bundle on Linux/macOS with `sha256sum`, run
 `sha256sum --check SHA256SUMS`. On PowerShell, use
-`Get-FileHash ./Siteimprove.Umbraco17.Plugin.1.0.0-beta.4.nupkg -Algorithm SHA256`
+`Get-FileHash ./Siteimprove.Umbraco17.Plugin.1.0.0-beta.5.nupkg -Algorithm SHA256`
 and compare the hash with `SHA256SUMS` or `release.json`.
 
 ## Install
@@ -41,7 +42,7 @@ Follow [installation and upgrade](INSTALLATION.md) to configure a local or
 internal NuGet source, then add the package to the Umbraco web project:
 
 ```sh
-dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.4
+dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.5
 ```
 
 Run this from the site repository root after configuring the source. Replace
@@ -68,8 +69,10 @@ the beta. With your actual Siteimprove account, check:
 
 The browser suite uses a stub for Siteimprove's overlay. It verifies the CMS
 integration, not Siteimprove's own login, live results, or remote analysis.
-Those checks and actual Cloud/Windows deployment acceptance remain pending.
-Multilingual/multisite routing also needs acceptance in the customer's setup.
+Draft checks have separate real-service evidence on the self-hosted test site.
+Published-page crawling there awaits Siteimprove's initial site review. Actual
+Cloud/Windows deployment and the customer's multilingual/multisite routing
+still require acceptance.
 Headless/external preview rendering requires a separate integration.
 
 See [browser tests](BROWSER-TESTS.md) for coverage and

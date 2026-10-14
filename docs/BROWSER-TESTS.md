@@ -1,5 +1,18 @@
 # Browser functionality tests
 
+## Beta 5 coverage
+
+The current candidate has 41 passing JavaScript checks, 35 backend checks and
+clean-consumer package checks. Its three-browser matrix adds HTTP session
+initialization, actual saved field text in preview, authorization expiry and
+recovery, and non-content workspace modals. Results are recorded after a complete
+run; the matrix uses a stub overlay and does not certify the vendor service.
+
+Each CMS-only control records all errors and verifies zero Siteimprove requests.
+The plugin flow rejects unknown or plugin exceptions. It records confirmed CMS
+exceptions and their comparison with that browser's control, including known
+exceptions not reproduced in the same run. Raw errors remain in the evidence; a passing integration run does not claim a clean CMS console.
+
 ## Beta 4 validation
 
 Passed locally on 2026-10-14 with Umbraco 17.7.1, .NET 10 and Chromium:
@@ -56,7 +69,7 @@ tab through Settings and checks that Siteimprove is absent from the top menu.
 Testing found duplicate overlays in Umbraco's preview shell; the port now skips
 that shell and loads the assistant once in the rendered preview iframe.
 
-The suite in `tests/browser` runs Chromium through Playwright against an actual
+The suite in `tests/browser` runs Chromium, Firefox and WebKit through Playwright against an actual
 Umbraco 17.7.1 application on .NET 10. The host installs the packaged plugin via
 NuGet, uses SQLite, and creates temporary admin/writer accounts and content through
 Umbraco's real Management API. It is bound to localhost.
@@ -85,9 +98,9 @@ The browser flow checks:
     a sibling outside that branch through either the CMS or plugin API.
 11. Blocking Siteimprove's CDN still permits editing, saving and publishing content.
 12. A CMS-only rapid-navigation control removes Siteimprove's backoffice manifests
-    and verifies that no plugin modules, APIs, or overlay requests run. Both the
+    and verifies that no plugin modules, APIs, or overlay requests run. The
     control rejects unknown framework errors. The plugin flow rejects errors
-    that are not also reproduced with the plugin disabled.
+    outside the source-confirmed CMS findings and records the full control comparison.
 13. A renamed saved draft keeps its published URL in preview; never-published
     preview content has no live URL while retaining prepublish callbacks.
 14. The launcher and panel are hidden outside document editing, remain available
@@ -114,9 +127,9 @@ environment variable and is not committed. The fixture enables runtime Razor
 compilation because it creates its test templates through the API after building
 the host.
 
-A rerun reuses the fixture's SQLite database unless its generated
-`tests/browser/host/umbraco/Data` directory is removed first. Use an isolated,
-disposable checkout for repeated runs; do not point these tests at a real site.
+Run `scripts/prepare-browser-hosts.py` before a rerun to replace only the generated
+`tests/browser/.hosts` fixtures. Each browser uses its own database, port and
+content root. These fixtures are disposable; do not point the suite at a real site.
 Generated database, views, assets, reports, and dependency directories are ignored.
 
 To inspect downloaded evidence, extract the artifact and run:
@@ -128,9 +141,9 @@ npx playwright show-trace test-results/plugin-real-Umbraco-backoffice-and-previe
 
 ## Remaining acceptance
 
-These are standalone Chromium checks on Linux and macOS. They do not certify an actual Umbraco
+These are standalone browser checks on a local CMS. They do not certify an actual Umbraco
 Cloud deployment, a Windows/IIS installation, multilingual/multisite routing,
-custom CSP/proxy settings, or a live Siteimprove account. Those acceptance checks
+custom CSP/proxy settings, or the full real-service crawl lifecycle. Those acceptance checks
 remain in [VALIDATION.md](VALIDATION.md).
 
 The full CMS test host restore reports NuGet audit warnings for Umbraco's inherited

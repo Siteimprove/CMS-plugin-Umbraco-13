@@ -9,32 +9,45 @@ at implementation time. Restoring the original 17.0.0 dependency baseline raised
 NuGet vulnerability warnings for its transitive packages; consumers should use
 current patched Umbraco releases.
 
-## Automated checks
+## Current beta.5 quality pass
 
-- JavaScript: 19 regression tests passed locally using Node 24, covering refreshed
-  authentication tokens, custom backoffice paths, request errors, document
-  changes, stale responses, initialization/teardown races, and preview callbacks.
-- Backend: 26 tests passed on GitHub Actions against Umbraco 17.7.1,
-  covering origin mapping, HTML escaping, preview gating,
-  response headers/length, stream restoration, and document-level authorization.
-- Packaging: package creation, archive paths, installation in a fresh .NET web
-  project, and development/published asset checks passed on GitHub Actions.
-- The editing workspace has no .NET SDK, so backend checks run on GitHub Actions.
-  Initial 17.7.1 build and package installation validation passed:
-  https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38451366281
-  This run reported no build warnings. Its alpha package is available as an artifact.
+The package targets Umbraco 17.7.1 and .NET 10. Local validation uses SDK
+10.0.402 and runtime 10.0.13. Current regression coverage includes 41 JavaScript
+checks and 35 backend checks. The NuGet archive and clean-consumer build/publish
+checks compare every installed asset with the source.
 
-Current beta.2 validation passed all 45 regression tests, package checks, and
-the strict native-navigation/browser control flow:
+The browser matrix uses current Chromium, Firefox and WebKit against separate
+disposable CMS installations. It covers saved draft field text, isolated result
+sessions, timeout/recovery, HTTP backoffices and template/document-type modals,
+in addition to permissions, publishing, settings, preview and CDN failure.
+See [browser evidence](BROWSER-TESTS.md) for the latest completed run and boundaries.
+
+The self-hosted test deployment has real-service draft analysis evidence,
+multilingual routes and two site roots. The backup restore drill passed in an
+isolated container with networking disabled. An unpublished Danish child remained
+404, and eight published routes returned 200 without preview injection.
+
+## Production blockers and remaining acceptance
+
+- **Published-page Siteimprove results:** the test site is in Siteimprove's initial
+  quality review. Its dashboard reports 2–6 business days. Repeat live results,
+  URL matching and page recheck once that review finishes; draft checks alone do
+  not certify crawling.
+- **CMS dependency audit:** cryptography Pkcs/Xml are patched to 10.0.13. The full
+  Umbraco host still resolves ImageSharp 3.1.12 and reports five advisories. There
+  is no compatible 3.1.x patch in the registry at this check; moving to 4.x needs
+  separate imaging compatibility and licensing review. These restore warnings
+  are not evidence of exploitability in this application.
+- **Core backoffice errors:** tree/repository teardown errors occur with the
+  plugin disabled. Preserve the browser/source-frame evidence and resolve or
+  explicitly accept those CMS defects before production sign-off.
+- **Other hosts:** actual Umbraco Cloud, Windows/IIS, a v13 upgrade and retained
+  database setting, multi-instance settings, separate hostnames/certificates,
+  custom CSP/backoffice paths and headless previews are not certified by the
+  current self-hosted installation.
+
+Historical beta.2 workflow evidence remains available:
 https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229
-
-## Release acceptance (pending)
-
-The standalone Chromium browser flow passed on a real Umbraco 17.7.1
-installation, including settings, navigation, publishing, both kinds of preview,
-highlighting callbacks, permissions, and saving while the CDN is blocked.
-See [BROWSER-TESTS.md](BROWSER-TESTS.md) for evidence, reproducible commands, and
-the boundary between browser integration tests and live Siteimprove acceptance.
 
 Run this checklist on an Umbraco 17 Cloud development environment and on a
 self-hosted Umbraco 17 site, using a working Siteimprove account.

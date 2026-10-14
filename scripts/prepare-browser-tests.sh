@@ -14,5 +14,6 @@ ET.SubElement(sources, "add", key="nuget", value="https://api.nuget.org/v3/index
 ET.ElementTree(config).write(repo / "tests/browser/host/nuget.config", encoding="unicode")
 PY
 dotnet build "$TASK_REPO_DIR/tests/browser/host/BrowserHost.csproj" -c Release
+python3 "$TASK_REPO_DIR/scripts/prepare-browser-hosts.py"
 npm --prefix "$TASK_REPO_DIR/tests/browser" install --no-audit --no-fund
-(cd "$TASK_REPO_DIR/tests/browser" && npx playwright install --with-deps chromium)
+(cd "$TASK_REPO_DIR/tests/browser" && npx playwright install --with-deps chromium firefox webkit)

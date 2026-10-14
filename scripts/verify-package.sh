@@ -19,6 +19,8 @@ with zipfile.ZipFile(package) as archive:
                  "document-context.js", "settings.element.js", "preview.js", "visibility.js"]:
         expected = "contentFiles/any/any/App_Plugins/Siteimprove/" + name
         assert expected in paths, (expected, paths)
+        source = package.parent.parent / "contentFiles/App_Plugins/Siteimprove" / name
+        assert archive.read(expected) == source.read_bytes(), "Stale packaged asset: " + name
 print("NuGet archive paths verified.")
 PY
 TASK_SMOKE_DIR="$(mktemp -d)"
@@ -44,6 +46,7 @@ for asset in umbraco-package.json entrypoint.js api.js assistant.js document-con
       echo "Missing asset: $directory/App_Plugins/Siteimprove/$asset" >&2
       exit 1
     fi
+    cmp "$directory/App_Plugins/Siteimprove/$asset" "$TASK_REPO_DIR/contentFiles/App_Plugins/Siteimprove/$asset"
   done
 done
 echo "NuGet build and publish asset checks passed."

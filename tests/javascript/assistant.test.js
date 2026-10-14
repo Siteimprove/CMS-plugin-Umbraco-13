@@ -134,3 +134,22 @@ test("a late published response cannot reset the new draft's isolated session", 
     assert.equal(commands.length, count);
     assert.notEqual(commands.filter(c => c[0] === "setSession").at(-1)[1], null);
 });
+
+test("HTTP backoffices can create isolated sessions without crypto.randomUUID", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { runInNewContext } = await import("node:vm");
+    const { randomFillSync } = await import("node:crypto");
+    const source = readFileSync(new URL("../../contentFiles/App_Plugins/Siteimprove/assistant.js", import.meta.url), "utf8")
+        .replace(/^import .*;\n/gm, "").replace(/^export /gm, "");
+    const window = {};
+    const context = { window, console, AbortController, setDocumentVisibility: () => {},
+        crypto: { getRandomValues: data => randomFillSync(data) } };
+    runInNewContext(source + "\nglobalThis.testAssistant = assistant;", context);
+    const assistant = context.testAssistant;
+    const api = { pageUrl: async () => ({ url: null }) };
+    await assistant.select("a", api, "draft-a", null, false);
+    await assistant.select("b", api, "draft-b", null, false);
+    const sessions = window._si.filter(c => c[0] === "setSession").map(c => c[1]);
+    assert.equal(new Set(sessions).size, 2);
+    assert.ok(sessions.every(id => /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id)));
+});

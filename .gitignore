@@ -39,3 +39,4 @@ tests/browser/host/umbraco-package-schema.json
 tests/browser/test-results/
 tests/browser/playwright-report/
 
+tests/browser/.hosts/

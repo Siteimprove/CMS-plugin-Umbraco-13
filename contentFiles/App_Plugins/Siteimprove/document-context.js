@@ -7,14 +7,23 @@ import { assistant } from "./assistant.js";
 
 export class SiteimproveDocumentContext extends UmbContextBase {
     #api;
+    #auth;
     #workspace;
     #owner = Symbol("SiteimproveDocument");
     #destroyed = false;
+    #observationSequence = 0;
     constructor(host) {
         super(host, "Siteimprove.DocumentContext");
         this.consumeContext(UMB_AUTH_CONTEXT, auth => {
-            this.#api = auth ? new SiteimproveApi(auth) : undefined;
+            if (this.#destroyed) return;
+            this.#auth = auth;
+            this.#api = undefined;
             this.#observeDocument();
+            if (auth) this.observe(auth.isAuthorized, authorized => {
+                if (this.#destroyed || this.#auth !== auth) return;
+                this.#api = authorized ? new SiteimproveApi(auth) : undefined;
+                this.#observeDocument();
+            }, "siteimprove-authorization");
         });
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, workspace => {
             this.#workspace = workspace;
@@ -23,23 +32,27 @@ export class SiteimproveDocumentContext extends UmbContextBase {
     }
     #observeDocument() {
         if (this.#destroyed) return;
+        const sequence = ++this.#observationSequence;
         if (!this.#api || !this.#workspace) {
             assistant.release(this.#owner);
             return;
         }
         const workspace = this.#workspace;
+        const api = this.#api;
         this.observe(observeMultiple([
             workspace.unique, workspace.isNew, workspace.persistedData,
             workspace.splitView.activeVariantsInfo
         ]), ([id, isNew, , variants]) => {
+            if (this.#destroyed || sequence !== this.#observationSequence) return;
             // One global overlay: in split view, use the first (left-hand) culture.
-            assistant.select(this.#owner, this.#api, id, variants[0]?.culture, isNew);
+            assistant.select(this.#owner, api, id, variants[0]?.culture, isNew);
         }, "siteimprove-document");
     }
     destroy() {
         this.#destroyed = true;
         this.#workspace = undefined;
         this.#api = undefined;
+        this.#auth = undefined;
         assistant.release(this.#owner);
         super.destroy();
     }
