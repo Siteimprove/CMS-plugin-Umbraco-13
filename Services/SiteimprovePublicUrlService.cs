@@ -35,7 +35,7 @@ public sealed class SiteimprovePublicUrlService(
         return GetPageUrl(content, culture);
     }
 
-    public string? GetPageUrl(IPublishedContent content, string? culture = null)
+    private string? GetPageUrl(IPublishedContent content, string? culture)
     {
         var context = contextAccessor.GetRequiredUmbracoContext();
         if (!context.InPreviewMode)

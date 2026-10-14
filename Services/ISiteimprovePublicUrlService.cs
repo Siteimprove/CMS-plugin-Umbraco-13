@@ -1,5 +1,3 @@
-using Umbraco.Cms.Core.Models.PublishedContent;
-
 namespace Siteimprove.Umbraco17.Plugin.Services;
 
 public interface ISiteimprovePublicUrlService
@@ -8,6 +6,5 @@ public interface ISiteimprovePublicUrlService
     bool IsConfigured { get; }
     void Set(string publicUrl);
     Task<string?> GetPageUrlAsync(Guid key, string? culture = null);
-    string? GetPageUrl(IPublishedContent content, string? culture = null);
 }
 

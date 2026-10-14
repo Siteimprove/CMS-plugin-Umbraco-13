@@ -1,6 +1,6 @@
 import { setDocumentVisibility } from "./visibility.js";
 
-export const OVERLAY_URL = "https://cdn.siteimprove.net/cms/overlay-latest.js";
+const OVERLAY_URL = "https://cdn.siteimprove.net/cms/overlay-latest.js";
 
 // randomUUID requires HTTPS; getRandomValues also works on HTTP backoffices.
 function newResultSession() {
@@ -12,7 +12,7 @@ function newResultSession() {
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-export function send(command) {
+function send(command) {
     (window._si = window._si || []).push(command);
 }
 

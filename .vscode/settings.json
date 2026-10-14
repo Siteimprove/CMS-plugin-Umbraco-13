@@ -1,12 +1,5 @@
 {
 	"editor.formatOnSave": true,
-	"eslint.enable": true,
-	"eslint.run": "onType",
-	"eslint.lintTask.enable": true,
-	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit"
-	},
-	"eslint.format.enable": true,
 	"csharp.format.enable": true,
 	"dotnet.defaultSolution": "Siteimprove.Umbraco17.Plugin.sln",
 	"editor.rulers": [180],

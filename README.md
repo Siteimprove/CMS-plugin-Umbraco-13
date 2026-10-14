@@ -8,8 +8,6 @@ the checks in [docs/VALIDATION.md](docs/VALIDATION.md) in both environments.
 
 Build beta.5 from this branch and follow the [installation guide](docs/INSTALLATION.md).
 See [beta.5 changes](docs/releases/1.0.0-beta.5.md). The package has not been published to NuGet.org.
-The [previous beta.2 bundle](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229/artifacts/11852846554)
-remains available for comparison.
 
 ## Documentation
 

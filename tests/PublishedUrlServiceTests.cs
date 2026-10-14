@@ -56,23 +56,25 @@ public class PublishedUrlServiceTests
     }
 
     [Fact]
-    public void ProviderFailureRestoresTheOriginalPreviewContext()
+    public async Task ProviderFailureRestoresTheOriginalPreviewContext()
     {
         var fixture = new Fixture();
+        fixture.Cache.Setup(c => c.GetByIdAsync(fixture.Key, false)).ReturnsAsync(fixture.Content);
         fixture.Provider.Setup(p => p.GetUrl(fixture.Content, UrlMode.Absolute, null, null))
             .Throws(new InvalidOperationException("Provider failed"));
-        Assert.Throws<InvalidOperationException>(() => fixture.Service.GetPageUrl(fixture.Content));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.GetPageUrlAsync(fixture.Key));
         Assert.Same(fixture.Context.Object, fixture.Accessor.Current);
         Assert.True(fixture.Accessor.Current!.InPreviewMode);
     }
 
     [Fact]
-    public void CustomProviderUrlRetainsItsPathAndConfiguredOrigin()
+    public async Task CustomProviderUrlRetainsItsPathAndConfiguredOrigin()
     {
         var fixture = new Fixture(new SiteimproveOptions { PublicUrl = "https://public.example:8443" });
+        fixture.Cache.Setup(c => c.GetByIdAsync(fixture.Key, false)).ReturnsAsync(fixture.Content);
         fixture.Provider.Setup(p => p.GetUrl(fixture.Content, UrlMode.Absolute, "da-DK", null))
             .Returns("https://custom.example/da/custom-route/?page=1");
-        Assert.Equal("https://public.example:8443/da/custom-route/?page=1", fixture.Service.GetPageUrl(fixture.Content, "da-DK"));
+        Assert.Equal("https://public.example:8443/da/custom-route/?page=1", await fixture.Service.GetPageUrlAsync(fixture.Key, "da-DK"));
         Assert.Same(fixture.Context.Object, fixture.Accessor.Current);
     }
 

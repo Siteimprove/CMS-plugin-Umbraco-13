@@ -45,7 +45,7 @@ public class PreviewMiddlewareTests
         Assert.Contains("data-siteimprove-preview", Encoding.UTF8.GetString(output));
         Assert.Contains($"data-page-url=\"{publishedUrl ?? ""}\"", Encoding.UTF8.GetString(output));
         urls.Verify(s => s.GetPageUrlAsync(key, "en-US"), Times.Once);
-        urls.Verify(s => s.GetPageUrl(It.IsAny<IPublishedContent>(), It.IsAny<string?>()), Times.Never);
+        urls.VerifyNoOtherCalls();
         Assert.Equal(output.Length, context.Response.ContentLength);
         Assert.False(context.Response.Headers.ContainsKey("ETag"));
         Assert.Equal("no-store", context.Response.Headers.CacheControl.ToString());

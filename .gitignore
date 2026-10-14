@@ -1,5 +1,7 @@
 /bin/
 /obj/
+/artifacts/
+__pycache__/
 
 .vs/
 *.suo
