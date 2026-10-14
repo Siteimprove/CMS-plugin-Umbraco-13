@@ -22,6 +22,8 @@ acceptance checklist.
   **Settings → Siteimprove**, domain overrides, and common problems.
 - [Browser test results](docs/BROWSER-TESTS.md) and
   [release acceptance](docs/VALIDATION.md): verified behavior and remaining checks.
+- [Marketplace listing](docs/MARKETPLACE.md): shared listing for Umbraco 13 and 17,
+  package mapping and release checks.
 
 ## Install
 

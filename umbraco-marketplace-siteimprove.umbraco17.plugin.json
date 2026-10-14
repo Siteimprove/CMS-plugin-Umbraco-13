@@ -1,0 +1,12 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "Title": "Siteimprove CMS plugin",
+  "Description": "Integrates Siteimprove Content Assistant with Umbraco, bringing content quality, accessibility and SEO insights into the editing workflow. Separate packages are available for Umbraco 13 and 17; see the installation instructions and release status for each version.",
+  "PackageType": "Integration",
+  "VersionSpecificPackageIds": [
+    {
+      "UmbracoMajorVersion": 13,
+      "PackageId": "Siteimprove.Umbraco13.Plugin"
+    }
+  ]
+}
