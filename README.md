@@ -2,12 +2,12 @@
 
 This port targets Umbraco CMS 17.7.1 or later in the 17.x series and .NET 10.
 The same NuGet package is intended
-for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.3** is for customer
+for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.4** is for customer
 acceptance testing. Stable release awaits
 the checks in [docs/VALIDATION.md](docs/VALIDATION.md) in both environments.
 
 Build beta.3 from this branch and follow the [installation guide](docs/INSTALLATION.md).
-See [beta.3 changes](docs/releases/1.0.0-beta.3.md). The package has not been published to NuGet.org.
+See [beta.4 changes](docs/releases/1.0.0-beta.4.md). The package has not been published to NuGet.org.
 The [previous beta.2 bundle](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229/artifacts/11852846554)
 remains available for comparison.
 
@@ -29,7 +29,7 @@ Build the package, then install it in an Umbraco 17 site:
 
 ```sh
 dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
-dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.3 --source /absolute/path/to/artifacts
+dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.4 --source /absolute/path/to/artifacts
 ```
 
 The second command selects the local feed. Restore the site with its normal

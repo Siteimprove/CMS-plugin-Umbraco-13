@@ -9,8 +9,10 @@ public static class PreviewHtmlInjector
         var index = html.LastIndexOf("</body>", StringComparison.OrdinalIgnoreCase);
         if (index < 0) return html;
         var encode = HtmlEncoder.Default;
+        var session = string.IsNullOrEmpty(pageUrl) ? Guid.NewGuid().ToString("D") : "";
         var script = $"<script src=\"{encode.Encode(pathBase + "/App_Plugins/Siteimprove/preview.js")}\" "
             + $"data-siteimprove-preview data-page-url=\"{encode.Encode(pageUrl ?? "")}\" "
+            + $"data-preview-session=\"{session}\" "
             + $"data-umbraco-version=\"{encode.Encode(version)}\" defer></script>";
         return html.Insert(index, script);
     }

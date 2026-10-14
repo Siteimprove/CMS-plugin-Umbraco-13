@@ -17,9 +17,23 @@ const stub = `
     panel.className = "si-iframe-container";
     panel.textContent = "Siteimprove test panel";
     document.body.appendChild(panel);
+    let session;
+    const resultKey = () => "__siDraftResult:" + (session || "shared");
+    localStorage.setItem("__siDraftResult:shared", "Cached result from another draft");
     const queue = window._si || [];
     function capture(command) {
-        if (typeof command[1] === "function") window.__siCallbacks[command[0]] = command[1];
+        if (command[0] === "setSession") {
+            session = command[1];
+            window.__siDraftResult = localStorage.getItem(resultKey());
+        }
+        if (command[0] === "registerPrepublishCallback") {
+            window.__siCallbacks[command[0]] = () => {
+                const result = command[1]();
+                localStorage.setItem(resultKey(), result[0].title);
+                window.__siDraftResult = result[0].title;
+                return result;
+            };
+        } else if (typeof command[1] === "function") window.__siCallbacks[command[0]] = command[1];
         window.__siCommands.push(command.map(value =>
             typeof value === "function" ? "[callback]" : value === document ? "[document]" : value));
     }
@@ -140,7 +154,7 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         return id;
     }
     const documentPath = id => "/umbraco/section/content/workspace/document/edit/" + id + "/invariant";
-    let home, first, second, draft, previewDraft, groups, writer;
+    let home, first, second, draft, previewDraft, otherPreviewDraft, groups, writer;
     let baselineErrors = new Set();
     const errorSignature = error => error.message + "\n" + error.stack?.split("\n")[1];
 
@@ -198,6 +212,7 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         second = await createDocument("Second Page", pageTypeId, templateId, home, true);
         draft = await createDocument("Draft Page", pageTypeId, templateId, home, false);
         previewDraft = await createDocument("Preview Draft", pageTypeId, templateId, home, false);
+        otherPreviewDraft = await createDocument("Other Preview Draft", pageTypeId, templateId, home, false);
         groups = (await json("user-group?skip=0&take=100")).items;
         writer = groups.find(g => /writers|editors/i.test(g.name));
         expect(writer).toBeTruthy();
@@ -278,7 +293,9 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         expect((await json("siteimprove/document/" + first + "/url")).url).toBe(PUBLIC_ORIGIN + "/first-page/");
     });
 
-    for (const [name, id] of [["published", () => first], ["never-published", () => previewDraft]]) {
+    const draftSessions = new Set();
+    for (const [name, id] of [["published", () => first], ["never-published", () => previewDraft],
+        ["other-draft", () => otherPreviewDraft], ["reopened-draft", () => previewDraft]]) {
         await test.step(name + " preview registers a full-page prepublish callback and highlighting", async () => {
             await navigate(page, documentPath(id()));
             const popupPromise = page.waitForEvent("popup");
@@ -290,6 +307,19 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
             await expect(frame.locator(".si-toggle-container")).toBeVisible();
             await expect(frame.locator("script[data-siteimprove-preview]")).toHaveAttribute("data-page-url",
                 name === "published" ? PUBLIC_ORIGIN + "/first-page/" : "");
+            const session = await frame.locator("script[data-siteimprove-preview]").getAttribute("data-preview-session");
+            const commands = await frame.evaluate(() => window.__siCommands);
+            if (name === "published") {
+                expect(session).toBe("");
+                expect(commands[0][1]).toBeNull();
+            } else {
+                expect(session).toMatch(/^[0-9a-f-]{36}$/);
+                expect(draftSessions.has(session)).toBe(false);
+                draftSessions.add(session);
+                expect(commands[0]).toEqual(["setSession", session, null, "Umbraco 17.7.1"]);
+                expect(commands[1]).toEqual(["clear"]);
+                expect(await frame.evaluate(() => window.__siDraftResult)).toBeNull();
+            }
             if (name === "published")
                 await expect(frame.getByRole("heading", { name: "Renamed First Page", exact: true })).toBeVisible();
             else
@@ -305,11 +335,14 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
                 };
             });
             expect(check).toEqual({ usesRenderedDocument: true, label: "Full page", highlightCommand: "applyDefaultHighlighting", hasContent: true });
+            expect(await frame.evaluate(() => window.__siDraftResult)).toBe(await frame.title());
             await screenshot(popup, testInfo, name + "-preview");
             await frame.getByRole("link", { name: "Second page", exact: true }).click();
             await expect(frame.getByRole("heading", { name: "Second Page", exact: true })).toBeVisible();
             await expect(frame.locator("script[data-siteimprove-preview]")).toHaveAttribute("data-page-url", PUBLIC_ORIGIN + "/second-page/");
             await expect.poll(() => frame.evaluate(() => window.__siOverlayLoads)).toBe(1);
+            await expect(frame.locator("script[data-siteimprove-preview]")).toHaveAttribute("data-preview-session", "");
+            expect(await frame.evaluate(() => window.__siCommands[0][1])).toBeNull();
             await popup.close();
         });
     }

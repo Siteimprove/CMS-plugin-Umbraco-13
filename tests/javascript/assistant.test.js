@@ -19,7 +19,7 @@ test("selects a published document's public URL and culture", async () => {
         assert.equal(id, "doc"); assert.equal(culture, "da-DK");
         return { url: "https://public.example.com/da/page/" };
     } }, "doc", "da-DK", false);
-    assert.deepEqual(commands, [["clear", ""], ["input", "https://public.example.com/da/page/", ""]]);
+    assert.deepEqual(commands.filter(c => c[0] !== "setSession"), [["clear", ""], ["input", "https://public.example.com/da/page/", ""]]);
 });
 
 test("new, missing, and unpublished documents clear stale content", async () => {
@@ -28,7 +28,7 @@ test("new, missing, and unpublished documents clear stale content", async () => 
     await assistant.select("o", noRequest, "new", null, true);
     await assistant.select("o", noRequest, undefined, null, false);
     await assistant.select("o", { pageUrl: async () => ({ url: null }) }, "unpublished", null, false);
-    assert.deepEqual(commands, [["clear", ""], ["clear", ""], ["clear", ""]]);
+    assert.deepEqual(commands.filter(c => c[0] !== "setSession"), [["clear", ""], ["clear", ""], ["clear", ""]]);
 });
 
 test("late responses cannot replace the newly selected page", async () => {
@@ -64,7 +64,7 @@ test("old workspace teardown cannot clear a newer workspace", async () => {
 test("request failures leave the assistant clear without an unhandled rejection", async () => {
     const { assistant, commands, warnings } = setup();
     await assistant.select("o", { pageUrl: async () => { throw new Error("Forbidden"); } }, "id", null, false);
-    assert.deepEqual(commands, [["clear", ""]]);
+    assert.deepEqual(commands.filter(c => c[0] !== "setSession"), [["clear", ""]]);
     assert.match(warnings[0], /Forbidden/);
 });
 
@@ -94,4 +94,43 @@ test("a late document response cannot show the launcher after leaving content", 
     slow.resolve({ url: "https://example.com/" });
     await pending;
     assert.deepEqual(visibility, [true, false]);
+});
+
+
+test("unpublished documents and cultures receive isolated result sessions", async () => {
+    const { assistant, commands } = setup();
+    const api = { pageUrl: async () => ({ url: null }) };
+    for (const [id, culture] of [["draft-a", null], ["draft-b", null], ["draft-b", "da-DK"]])
+        await assistant.select("owner", api, id, culture, false);
+    const sessions = commands.filter(c => c[0] === "setSession").map(c => c[1]);
+    assert.equal(new Set(sessions).size, 3);
+    assert.ok(sessions.every(id => /^[0-9a-f-]{36}$/.test(id)));
+    assert.equal(commands.some(c => c[0] === "input"), false);
+});
+
+test("published content restores URL-based results after an isolated draft", async () => {
+    const { assistant, commands } = setup();
+    await assistant.select("draft", { pageUrl: async () => ({ url: null }) }, "draft", null, false);
+    await assistant.select("page", { pageUrl: async () => ({ url: "https://example.com/page/" }) }, "page", null, false);
+    assert.deepEqual(commands.at(-2), ["setSession", null, null, "Umbraco"]);
+    assert.deepEqual(commands.at(-1), ["input", "https://example.com/page/", ""]);
+});
+
+test("overlay initialization preserves the current draft session", async () => {
+    const { assistant, commands } = setup();
+    await assistant.select("draft", { pageUrl: async () => ({ url: null }) }, "draft", null, false);
+    const session = commands.find(c => c[0] === "setSession")[1];
+    assistant.initialize("17.7.1");
+    assert.deepEqual(commands.at(-1), ["setSession", session, null, "Umbraco 17.7.1"]);
+});
+
+test("a late published response cannot reset the new draft's isolated session", async () => {
+    const { assistant, commands } = setup(), slow = deferred();
+    const pending = assistant.select("page", { pageUrl: () => slow.promise }, "page", null, false);
+    await assistant.select("draft", { pageUrl: async () => ({ url: null }) }, "draft", null, false);
+    const count = commands.length;
+    slow.resolve({ url: "https://example.com/page/" });
+    await pending;
+    assert.equal(commands.length, count);
+    assert.notEqual(commands.filter(c => c[0] === "setSession").at(-1)[1], null);
 });

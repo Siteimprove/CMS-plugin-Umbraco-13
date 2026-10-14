@@ -1,13 +1,16 @@
-# Customer beta: 1.0.0-beta.3
+# Customer beta: 1.0.0-beta.4
 
 This beta ports Siteimprove Content Assistant to **Umbraco 17.7.1+ (17.x)** on
 **.NET 10**, for customer acceptance testing on Umbraco Cloud or self-hosted sites.
 It is not a stable release and is not published to NuGet.org.
 
-Beta.3 resolves preview live URLs from published content and routing state,
+Beta.4 isolates unpublished draft results and resolves preview live URLs from published content and routing state,
 including renamed drafts and unpublished cultures. It hides the launcher and
 panel outside document editing and rendered preview while retaining draft checks.
-See [beta.3 changes](releases/1.0.0-beta.3.md) and [review findings](REVIEW.md).
+See [beta.4 changes](releases/1.0.0-beta.4.md) and [review findings](REVIEW.md).
+Opening or reloading an unpublished preview starts with no prior results. Run a
+content check to analyze that rendered draft; Recheck draft and highlighting remain
+available while the preview is open.
 
 The configuration is under **Settings → Siteimprove**. The package integrates
 published document URLs, save/publish refreshes, full-page preview checks and
@@ -16,7 +19,7 @@ the v13 database setting. Installing it does not upgrade the CMS itself.
 
 ## Bundle contents
 
-- `Siteimprove.Umbraco17.Plugin.1.0.0-beta.3.nupkg`: installable NuGet package.
+- `Siteimprove.Umbraco17.Plugin.1.0.0-beta.4.nupkg`: installable NuGet package.
 - `START-HERE.md`, `README.md`, and `docs/`: installation, usage, beta notes,
   automated-test evidence, and acceptance guidance.
 - `release.json`: version, source commit, build commit, package checksum, and
@@ -29,7 +32,7 @@ The exact beta run is recorded in its `release.json`.
 
 For an extracted bundle on Linux/macOS with `sha256sum`, run
 `sha256sum --check SHA256SUMS`. On PowerShell, use
-`Get-FileHash ./Siteimprove.Umbraco17.Plugin.1.0.0-beta.3.nupkg -Algorithm SHA256`
+`Get-FileHash ./Siteimprove.Umbraco17.Plugin.1.0.0-beta.4.nupkg -Algorithm SHA256`
 and compare the hash with `SHA256SUMS` or `release.json`.
 
 ## Install
@@ -38,7 +41,7 @@ Follow [installation and upgrade](INSTALLATION.md) to configure a local or
 internal NuGet source, then add the package to the Umbraco web project:
 
 ```sh
-dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.3
+dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.4
 ```
 
 Run this from the site repository root after configuring the source. Replace

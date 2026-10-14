@@ -1,5 +1,24 @@
 # Browser functionality tests
 
+## Beta 4 validation
+
+Passed locally on 2026-10-14 with Umbraco 17.7.1, .NET 10 and Chromium:
+29 JavaScript tests, 35 backend tests, NuGet clean-consumer installation/build/
+publish checks, and the full fresh-CMS browser flow. The browser test completed
+in 65 seconds (91 seconds including host startup), with no failed or flaky tests.
+
+Draft-result regressions seed a shared cached result, open two different
+unpublished drafts, reopen the first draft, and require an empty result context
+before each check. Each preview has a distinct session, its callback supplies the
+current rendered document, and navigation to published content restores a null
+session with the correct public URL. Unit tests also cover unpublished cultures,
+late published responses and delayed overlay initialization.
+
+The plugin-disabled rapid-navigation control made zero Siteimprove requests and
+reproduced 54 core tree-context exceptions. The plugin flow rejected any exception
+whose exact message and first source frame were absent from that control.
+Real-service verification is separate from this stubbed overlay test.
+
 ## Beta 3 validation
 
 Passed on 2026-10-14 with Umbraco 17.7.1, .NET SDK 10.0.402 and Chromium on macOS:

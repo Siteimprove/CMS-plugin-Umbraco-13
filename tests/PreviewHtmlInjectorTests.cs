@@ -26,4 +26,27 @@ public class PreviewHtmlInjectorTests
     [Fact]
     public void LeavesResponsesWithoutBodyTagUnchanged()
         => Assert.Equal("fragment", PreviewHtmlInjector.Inject("fragment", "", null, "17"));
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void EveryUrlLessRenderHasAFreshResultSession(string? pageUrl)
+    {
+        string Session(string html) => System.Text.RegularExpressions.Regex
+            .Match(html, "data-preview-session=\"([^\"]+)\"").Groups[1].Value;
+        var first = Session(PreviewHtmlInjector.Inject("<body>Draft A</body>", "", pageUrl, "17.7.1"));
+        var second = Session(PreviewHtmlInjector.Inject("<body>Draft B</body>", "", pageUrl, "17.7.1"));
+        var reload = Session(PreviewHtmlInjector.Inject("<body>Draft A revised</body>", "", pageUrl, "17.7.1"));
+        Assert.True(Guid.TryParse(first, out _));
+        Assert.True(Guid.TryParse(second, out _));
+        Assert.True(Guid.TryParse(reload, out _));
+        Assert.Equal(3, new[] { first, second, reload }.Distinct().Count());
+    }
+
+    [Fact]
+    public void PublishedPreviewsKeepUrlBasedResultHistory()
+    {
+        var html = PreviewHtmlInjector.Inject("<body>Published</body>", "", "https://example.com/page/", "17.7.1");
+        Assert.Contains("data-preview-session=\"\"", html);
+    }
+
 }

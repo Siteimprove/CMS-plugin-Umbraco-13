@@ -9,7 +9,7 @@ export function send(command) {
 let overlayPromise;
 export function loadOverlay(version) {
     if (overlayPromise) return overlayPromise;
-    send(["setSession", null, null, "Umbraco " + version]);
+    assistant.initialize(version);
     overlayPromise = new Promise((resolve, reject) => {
         const script = document.createElement("script");
         script.src = OVERLAY_URL;
@@ -35,10 +35,20 @@ export class SiteimproveAssistant {
     #owner;
     #sequence = 0;
     #abort;
+    #session = crypto.randomUUID();
+    #plugin = "Umbraco";
     constructor(push = send, warn = message => console.warn(message), visibility = setDocumentVisibility) {
         this.push = push;
         this.warn = warn;
         this.visibility = visibility;
+    }
+    initialize(version) {
+        this.#plugin = "Umbraco " + version;
+        this.#setSession(this.#session);
+    }
+    #setSession(id) {
+        this.#session = id;
+        this.push(["setSession", id, null, this.#plugin]);
     }
     async select(owner, api, id, culture, isNew) {
         this.#owner = owner;
@@ -46,12 +56,16 @@ export class SiteimproveAssistant {
         const sequence = ++this.#sequence;
         this.#abort?.abort();
         this.#abort = new AbortController();
+        // Isolate drafts before the URL request can complete or fail.
+        this.#setSession(crypto.randomUUID());
         this.push(["clear", ""]);
         if (!id || isNew !== false) return;
         try {
             const { url } = await api.pageUrl(id, culture, this.#abort.signal);
-            if (sequence === this.#sequence && this.#owner === owner && url)
+            if (sequence === this.#sequence && this.#owner === owner && url) {
+                this.#setSession(null);
                 this.push(["input", url, ""]);
+            }
         } catch (error) {
             if (sequence === this.#sequence && error.name !== "AbortError")
                 this.warn("Siteimprove: " + error.message);
@@ -66,6 +80,7 @@ export class SiteimproveAssistant {
         this.visibility(false);
         ++this.#sequence;
         this.#abort?.abort();
+        this.#setSession(crypto.randomUUID());
         this.push(["clear", ""]);
     }
 }

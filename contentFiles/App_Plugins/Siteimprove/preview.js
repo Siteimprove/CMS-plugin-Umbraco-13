@@ -4,8 +4,10 @@
     if (!settings || window.__siteimprovePreviewLoaded) return;
     window.__siteimprovePreviewLoaded = true;
     const si = window._si = window._si || [];
-    si.push(["setSession", null, null, "Umbraco " + settings.dataset.umbracoVersion]);
+    // URL-less checks are cached by session. Each rendered preview needs its own context.
+    si.push(["setSession", settings.dataset.previewSession || null, null, "Umbraco " + settings.dataset.umbracoVersion]);
     if (settings.dataset.pageUrl) si.push(["input", settings.dataset.pageUrl]);
+    else si.push(["clear"]);
     si.push(["registerPrepublishCallback", () => [document, undefined, "Full page"]]);
     si.push(["onHighlight", info => {
         (window._si || si).push(["applyDefaultHighlighting", info, document]);
