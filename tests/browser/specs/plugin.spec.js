@@ -433,6 +433,7 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         for (const name of ["Browser Test", "Browser Test Page"]) {
             await page.getByRole("link", { name, exact: true }).click();
             await expect(page.getByRole("dialog")).toBeVisible();
+            if (name === "Browser Test") await expect(page.locator(".monaco-editor")).toBeVisible();
             await expect(page.locator(".si-toggle-container")).toBeHidden();
             await expect(page.locator(".si-iframe-container")).toBeHidden();
             await screenshot(page, testInfo, "non-content-workspace-" + name.replaceAll(" ", "-"));
@@ -562,6 +563,7 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         for (const name of ["Browser Test", "Browser Test Page"]) {
             await controlPage.getByRole("link", { name, exact: true }).click();
             await expect(controlPage.getByRole("dialog")).toBeVisible();
+            if (name === "Browser Test") await expect(controlPage.locator(".monaco-editor")).toBeVisible();
             await screenshot(controlPage, testInfo, "cms-only-workspace-" + name.replaceAll(" ", "-"));
             await controlPage.getByRole("button", { name: "Close", exact: true }).click();
             await expect(controlPage.getByRole("link", { name, exact: true })).toBeVisible();
