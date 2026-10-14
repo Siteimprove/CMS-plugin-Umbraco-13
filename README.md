@@ -6,6 +6,11 @@ for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.2** is for custo
 acceptance testing. Stable release awaits
 the checks in [docs/VALIDATION.md](docs/VALIDATION.md) in both environments.
 
+**Customer beta:** [download the verified beta.2 bundle](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229/artifacts/11852846554)
+and follow the [installation guide](docs/INSTALLATION.md).
+[GitHub prerelease notes](docs/releases/1.0.0-beta.2.md) are prepared; the prerelease
+has not yet been published.
+
 ## Documentation
 
 Start with the [customer beta notes](docs/BETA.md) for package contents and the

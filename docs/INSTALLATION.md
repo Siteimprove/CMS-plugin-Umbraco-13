@@ -20,9 +20,12 @@ the application is published self-contained. No plugin npm build is required.
 
 ## 1. Obtain the beta package
 
-Use the customer beta ZIP supplied by Siteimprove, or download
-**Siteimprove-Umbraco17-beta** from a successful beta validation run on the
-[port branch](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions?query=branch%3Aport%2Fumbraco-17).
+Once published, download the customer ZIP from the **1.0.0-beta.2 prerelease** on
+the repository's [GitHub Releases page](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/releases).
+Release assets do not use GitHub Actions artifact retention.
+The prerelease is currently being prepared. Until it is published, use the
+customer ZIP supplied by Siteimprove or download the
+[verified beta.2 artifact](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229/artifacts/11852846554).
 GitHub may require you to sign in to download artifacts. Extract the artifact ZIP
 and then the customer ZIP inside it. The customer ZIP includes
 `Siteimprove.Umbraco17.Plugin.1.0.0-beta.2.nupkg`, installation/usage guides,
