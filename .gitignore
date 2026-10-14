@@ -25,6 +25,8 @@ project.lock.json
 *.mdf
 *.ldf
 node_modules/
+tests/bin/
+tests/obj/
 tests/browser/host/bin/
 tests/browser/host/obj/
 tests/browser/host/App_Data/
@@ -32,6 +34,8 @@ tests/browser/host/App_Plugins/
 tests/browser/host/umbraco/
 tests/browser/host/Views/
 tests/browser/host/nuget.config
+tests/browser/host/appsettings-schema*.json
+tests/browser/host/umbraco-package-schema.json
 tests/browser/test-results/
 tests/browser/playwright-report/
 

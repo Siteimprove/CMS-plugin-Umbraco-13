@@ -3,6 +3,8 @@
 Install the package using the [installation guide](INSTALLATION.md).
 The Content Assistant is available after backoffice login; configuration is
 under **Settings → Siteimprove** for administrators with Settings access.
+The launcher and panel appear only while editing a document or viewing its
+rendered preview, including drafts. They are hidden on dashboards and other sections.
 
 ## For editors
 
@@ -18,6 +20,8 @@ from the assistant. Use **Save and preview** to check its rendered content befor
 publication. The preview integration supplies the full rendered document and
 registers highlighting; it also works for published pages. The assistant loads
 once in the rendered preview rather than in Umbraco's surrounding preview shell.
+Live insights use the published URL even when a saved draft has a different name
+or route. Never-published pages have no live URL; prepublish checks still work.
 
 Preview checks are enabled by default. Headless or external preview providers
 need an integration in their own rendering application. Ordinary public pages

@@ -1,6 +1,21 @@
 # Browser functionality tests
 
-## Verified result
+## Beta 3 validation
+
+Passed on 2026-10-14 with Umbraco 17.7.1, .NET SDK 10.0.402 and Chromium on macOS:
+23 JavaScript tests, 32 backend tests, NuGet installation/publish checks and the
+full browser lifecycle flow in 54.5 seconds. Preview regressions check a renamed
+saved draft against its published route, a never-published page with no live URL,
+navigation inside preview, and one overlay in the rendered iframe.
+
+Visibility checks cover document editing, drafts, Content dashboards, Settings,
+Media and Users. The plugin flow reported no browser exceptions. A matching
+plugin-disabled section-navigation control produced nine Umbraco tree/router
+teardown exceptions and no Siteimprove requests. The suite rejects unknown
+control errors and any plugin-flow exception whose message and source frame
+were not reproduced by the control.
+
+## Previous beta 2 validation
 
 Passed on 2026-10-13 against source commit
 `49d70214c8697936724f6717f5ad07a03aacf0ea`: the full Chromium flow completed
@@ -52,7 +67,12 @@ The browser flow checks:
 11. Blocking Siteimprove's CDN still permits editing, saving and publishing content.
 12. A CMS-only rapid-navigation control removes Siteimprove's backoffice manifests
     and verifies that no plugin modules, APIs, or overlay requests run. Both the
-    control and the native menu/tree plugin flow fail on any browser error.
+    control rejects unknown framework errors. The plugin flow rejects errors
+    that are not also reproduced with the plugin disabled.
+13. A renamed saved draft keeps its published URL in preview; never-published
+    preview content has no live URL while retaining prepublish callbacks.
+14. The launcher and panel are hidden outside document editing, remain available
+    for drafts, and return when a document workspace is opened.
 
 
 Screenshots and a Playwright trace are retained in the GitHub workflow's
@@ -89,7 +109,7 @@ npx playwright show-trace test-results/plugin-real-Umbraco-backoffice-and-previe
 
 ## Remaining acceptance
 
-These are standalone Linux/Chromium checks. They do not certify an actual Umbraco
+These are standalone Chromium checks on Linux and macOS. They do not certify an actual Umbraco
 Cloud deployment, a Windows/IIS installation, multilingual/multisite routing,
 custom CSP/proxy settings, or a live Siteimprove account. Those acceptance checks
 remain in [VALIDATION.md](VALIDATION.md).

@@ -15,18 +15,21 @@ namespace Siteimprove.Umbraco17.Plugin.Tests;
 
 public class PreviewMiddlewareTests
 {
-    [Fact]
-    public async Task AuthenticatedPreviewGetsScriptUpdatedLengthAndRestoredStream()
+    [Theory]
+    [InlineData("https://www.example.com/published-route/")]
+    [InlineData(null)]
+    public async Task PreviewUsesPublishedLookupAndKeepsUnpublishedPrepublishChecks(string? publishedUrl)
     {
         var context = Context();
         var original = context.Response.Body;
-        var content = Mock.Of<IPublishedContent>();
+        var key = Guid.NewGuid();
+        var content = Mock.Of<IPublishedContent>(c => c.Key == key);
         var request = Mock.Of<IPublishedRequest>(r => r.PublishedContent == content && r.Culture == "en-US");
         var umbracoContext = Mock.Of<IUmbracoContext>(c => c.InPreviewMode && c.PublishedRequest == request);
         var accessor = new Mock<IUmbracoContextAccessor>();
         accessor.Setup(a => a.TryGetUmbracoContext(out umbracoContext)).Returns(true);
         var urls = new Mock<ISiteimprovePublicUrlService>();
-        urls.Setup(s => s.GetPageUrl(content, "en-US")).Returns("https://www.example.com/page/");
+        urls.Setup(s => s.GetPageUrlAsync(key, "en-US")).ReturnsAsync(publishedUrl);
         var version = Mock.Of<IUmbracoVersion>(v => v.Version == new Version(17, 0, 0));
         var middleware = new PreviewScriptInjectionMiddleware(async c =>
         {
@@ -40,6 +43,9 @@ public class PreviewMiddlewareTests
         Assert.Same(original, context.Response.Body);
         var output = ((MemoryStream)original).ToArray();
         Assert.Contains("data-siteimprove-preview", Encoding.UTF8.GetString(output));
+        Assert.Contains($"data-page-url=\"{publishedUrl ?? ""}\"", Encoding.UTF8.GetString(output));
+        urls.Verify(s => s.GetPageUrlAsync(key, "en-US"), Times.Once);
+        urls.Verify(s => s.GetPageUrl(It.IsAny<IPublishedContent>(), It.IsAny<string?>()), Times.Never);
         Assert.Equal(output.Length, context.Response.ContentLength);
         Assert.False(context.Response.Headers.ContainsKey("ETag"));
         Assert.Equal("no-store", context.Response.Headers.CacheControl.ToString());

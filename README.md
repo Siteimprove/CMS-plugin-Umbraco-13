@@ -2,14 +2,14 @@
 
 This port targets Umbraco CMS 17.7.1 or later in the 17.x series and .NET 10.
 The same NuGet package is intended
-for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.2** is for customer
+for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.3** is for customer
 acceptance testing. Stable release awaits
 the checks in [docs/VALIDATION.md](docs/VALIDATION.md) in both environments.
 
-**Customer beta:** [download the verified beta.2 bundle](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229/artifacts/11852846554)
-and follow the [installation guide](docs/INSTALLATION.md).
-[GitHub prerelease notes](docs/releases/1.0.0-beta.2.md) are prepared; the prerelease
-has not yet been published.
+Build beta.3 from this branch and follow the [installation guide](docs/INSTALLATION.md).
+See [beta.3 changes](docs/releases/1.0.0-beta.3.md). The package has not been published to NuGet.org.
+The [previous beta.2 bundle](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229/artifacts/11852846554)
+remains available for comparison.
 
 ## Documentation
 
@@ -29,7 +29,7 @@ Build the package, then install it in an Umbraco 17 site:
 
 ```sh
 dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
-dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.2 --source /absolute/path/to/artifacts
+dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.3 --source /absolute/path/to/artifacts
 ```
 
 The second command selects the local feed. Restore the site with its normal
@@ -51,6 +51,10 @@ A valid Siteimprove account is required. The Content Assistant loads after
 backoffice authentication. Selecting a published document sends its public URL
 to the assistant. New/unpublished documents clear the previous live-page context.
 Saving or publishing refreshes that URL; leaving the document clears it.
+The launcher and panel are visible only in document editing and rendered preview,
+including drafts. Settings, dashboards and other sections hide them.
+Preview uses the published route for live insights; never-published content has
+no live URL and still supports full-page prepublish checks.
 
 For multilingual content, the selected culture is passed to Umbraco's URL provider.
 In split view the single assistant uses the first (left-hand) culture.

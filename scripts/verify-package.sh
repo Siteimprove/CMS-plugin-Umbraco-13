@@ -16,7 +16,7 @@ with zipfile.ZipFile(package) as archive:
     assert manifest['version'] == sys.argv[2]
     assert "buildTransitive/Siteimprove.Umbraco17.Plugin.targets" in paths, paths
     for name in ["umbraco-package.json", "entrypoint.js", "api.js", "assistant.js",
-                 "document-context.js", "settings.element.js", "preview.js"]:
+                 "document-context.js", "settings.element.js", "preview.js", "visibility.js"]:
         expected = "contentFiles/any/any/App_Plugins/Siteimprove/" + name
         assert expected in paths, (expected, paths)
 print("NuGet archive paths verified.")
@@ -38,7 +38,7 @@ PY
 dotnet add "$TASK_SMOKE_DIR/Consumer.csproj" package Siteimprove.Umbraco17.Plugin --version "$TASK_PACKAGE_VERSION"
 dotnet build "$TASK_SMOKE_DIR/Consumer.csproj" -c Release
 dotnet publish "$TASK_SMOKE_DIR/Consumer.csproj" -c Release -o "$TASK_SMOKE_DIR/published"
-for asset in umbraco-package.json entrypoint.js api.js assistant.js document-context.js settings.element.js preview.js; do
+for asset in umbraco-package.json entrypoint.js api.js assistant.js document-context.js settings.element.js preview.js visibility.js; do
   for directory in "$TASK_SMOKE_DIR" "$TASK_SMOKE_DIR/published"; do
     if [[ ! -f "$directory/App_Plugins/Siteimprove/$asset" ]]; then
       echo "Missing asset: $directory/App_Plugins/Siteimprove/$asset" >&2

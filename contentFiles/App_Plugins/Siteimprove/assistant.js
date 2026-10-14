@@ -1,3 +1,5 @@
+import { setDocumentVisibility } from "./visibility.js";
+
 export const OVERLAY_URL = "https://cdn.siteimprove.net/cms/overlay-latest.js";
 
 export function send(command) {
@@ -33,12 +35,14 @@ export class SiteimproveAssistant {
     #owner;
     #sequence = 0;
     #abort;
-    constructor(push = send, warn = message => console.warn(message)) {
+    constructor(push = send, warn = message => console.warn(message), visibility = setDocumentVisibility) {
         this.push = push;
         this.warn = warn;
+        this.visibility = visibility;
     }
     async select(owner, api, id, culture, isNew) {
         this.#owner = owner;
+        this.visibility(true);
         const sequence = ++this.#sequence;
         this.#abort?.abort();
         this.#abort = new AbortController();
@@ -59,6 +63,7 @@ export class SiteimproveAssistant {
     }
     clear() {
         this.#owner = undefined;
+        this.visibility(false);
         ++this.#sequence;
         this.#abort?.abort();
         this.push(["clear", ""]);

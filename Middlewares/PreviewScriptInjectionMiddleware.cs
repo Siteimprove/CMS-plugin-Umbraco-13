@@ -39,7 +39,7 @@ public sealed class PreviewScriptInjectionMiddleware(RequestDelegate next)
                 buffer.Position = 0;
                 using var reader = new StreamReader(buffer, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
                 var html = await reader.ReadToEndAsync(context.RequestAborted);
-                var pageUrl = publicUrlService.GetPageUrl(content, umbracoContext.PublishedRequest.Culture);
+                var pageUrl = await publicUrlService.GetPageUrlAsync(content.Key, umbracoContext.PublishedRequest.Culture);
                 var modified = PreviewHtmlInjector.Inject(html, context.Request.PathBase.Value ?? "", pageUrl,
                     umbracoVersion.Version.ToString());
                 if (modified != html)

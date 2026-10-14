@@ -9,6 +9,14 @@ const stub = `
     window.__siOverlayLoads = (window.__siOverlayLoads || 0) + 1;
     window.__siCommands = [];
     window.__siCallbacks = {};
+    const launcher = document.createElement("div");
+    launcher.className = "si-toggle-container";
+    launcher.textContent = "Siteimprove test launcher";
+    document.body.appendChild(launcher);
+    const panel = document.createElement("div");
+    panel.className = "si-iframe-container";
+    panel.textContent = "Siteimprove test panel";
+    document.body.appendChild(panel);
     const queue = window._si || [];
     function capture(command) {
         if (typeof command[1] === "function") window.__siCallbacks[command[0]] = command[1];
@@ -52,7 +60,8 @@ async function navigate(page, path) {
         if (!await target.count()) {
             await page.locator('umb-document-tree uui-menu-item[label="Home"] button#caret-button').click();
         }
-        await target.click();
+        // The tree's slotted label can cover its anchor on macOS; keyboard activation uses the same route.
+        await target.press("Enter");
         const response = await documentLoaded;
         expect(response.status()).toBe(200);
         const document = await response.json();
@@ -98,7 +107,7 @@ async function previewFrame(popup) {
 test("real Umbraco backoffice and preview lifecycle", async ({ page, context, request, browser }, testInfo) => {
     const errors = [];
     page.on("pageerror", error => {
-        errors.push(error.message);
+        errors.push({ message: error.message, stack: error.stack });
         console.log("Backoffice browser error", JSON.stringify({
             path: new URL(page.url()).pathname, message: error.message, stack: error.stack
         }));
@@ -132,6 +141,8 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
     }
     const documentPath = id => "/umbraco/section/content/workspace/document/edit/" + id + "/invariant";
     let home, first, second, draft, previewDraft, groups, writer;
+    let baselineErrors = new Set();
+    const errorSignature = error => error.message + "\n" + error.stack?.split("\n")[1];
 
     await test.step("anonymous requests cannot access plugin APIs", async () => {
         for (const endpoint of ["version", "public-url", "document/" + randomUUID() + "/url"]) {
@@ -147,6 +158,8 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         await expect.poll(() => page.evaluate(() => window.__siOverlayLoads)).toBe(1);
         expect(await page.evaluate(() => window.__siCommands.some(c => c[0] === "setSession" && c[3].startsWith("Umbraco 17.")))).toBe(true);
         expect(errors).toEqual([]);
+        await expect(page.locator(".si-toggle-container")).toBeHidden();
+        await expect(page.locator(".si-iframe-container")).toBeHidden();
         await screenshot(page, testInfo, "authenticated-backoffice");
     });
 
@@ -214,12 +227,35 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
 
     await test.step("document navigation sends the mapped URL and clears context outside content", async () => {
         await navigate(page, documentPath(first));
+        await expect(page.locator(".si-toggle-container")).toBeVisible();
+        await expect(page.locator(".si-iframe-container")).toBeVisible();
         await expect.poll(() => lastCommand(page)).toEqual(["input", PUBLIC_ORIGIN + "/first-page/", ""]);
         await navigate(page, documentPath(second));
         await expect.poll(() => lastCommand(page)).toEqual(["input", PUBLIC_ORIGIN + "/second-page/", ""]);
         await navigate(page, "/umbraco/section/settings/dashboard/siteimprove");
         await expect(page.locator("siteimprove-settings")).toBeVisible();
         await expect.poll(() => lastCommand(page)).toEqual(["clear", ""]);
+        await expect(page.locator(".si-toggle-container")).toBeHidden();
+        await expect(page.locator(".si-iframe-container")).toBeHidden();
+    });
+
+    await test.step("dashboards, Media and Users hide both the icon and an open panel", async () => {
+        await navigate(page, documentPath(first));
+        await page.getByRole("link", { name: "Content", exact: true }).click();
+        await expect(page).toHaveURL(/\/section\/content(?:\/dashboard\/[^/]+)?$/);
+        await page.waitForLoadState("networkidle");
+        await expect(page.locator(".si-toggle-container")).toBeHidden();
+        await page.locator("umb-backoffice-header").getByRole("tab", { name: "Media", exact: true }).click();
+        await expect(page.getByRole("heading", { name: "Media", exact: true }).first()).toBeVisible();
+        await page.waitForLoadState("networkidle");
+        await expect(page.locator(".si-toggle-container")).toBeHidden();
+        await expect(page.locator(".si-iframe-container")).toBeHidden();
+        await page.goto("/umbraco/section/user-management/workspace/user-root");
+        await expect(page.getByRole("heading", { name: "Users", exact: true }).first()).toBeVisible();
+        await page.waitForLoadState("networkidle");
+        await expect.poll(() => page.evaluate(() => window.__siOverlayLoads)).toBe(1);
+        await expect(page.locator(".si-toggle-container")).toBeHidden();
+        await expect(page.locator(".si-iframe-container")).toBeHidden();
     });
 
     await test.step("unpublished content clears the assistant, then publishing refreshes its live URL", async () => {
@@ -227,9 +263,19 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         await navigate(page, documentPath(draft));
         await expect(page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPublish")).toBeVisible();
         await expect.poll(() => lastCommand(page)).toEqual(["clear", ""]);
+        await expect(page.locator(".si-toggle-container")).toBeVisible();
         await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPublish").click();
         await expect.poll(() => lastCommand(page)).toEqual(["input", PUBLIC_ORIGIN + "/draft-page/", ""]);
         await screenshot(page, testInfo, "document-published");
+    });
+
+    await test.step("save a renamed draft while keeping the published route", async () => {
+        await navigate(page, documentPath(first));
+        await page.getByRole("textbox", { name: "Enter a name...", exact: true }).fill("Renamed First Page");
+        const saved = page.waitForResponse(r => r.url().includes("/document/" + first) && r.request().method() === "PUT" && r.status() === 200);
+        await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.Save").click();
+        await saved;
+        expect((await json("siteimprove/document/" + first + "/url")).url).toBe(PUBLIC_ORIGIN + "/first-page/");
     });
 
     for (const [name, id] of [["published", () => first], ["never-published", () => previewDraft]]) {
@@ -241,6 +287,13 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
             const frame = await previewFrame(popup);
             expect(await popup.evaluate(() => window.__siOverlayLoads || 0)).toBe(0);
             await expect.poll(() => frame.evaluate(() => window.__siOverlayLoads)).toBe(1);
+            await expect(frame.locator(".si-toggle-container")).toBeVisible();
+            await expect(frame.locator("script[data-siteimprove-preview]")).toHaveAttribute("data-page-url",
+                name === "published" ? PUBLIC_ORIGIN + "/first-page/" : "");
+            if (name === "published")
+                await expect(frame.getByRole("heading", { name: "Renamed First Page", exact: true })).toBeVisible();
+            else
+                expect(await frame.evaluate(() => window.__siCommands.some(c => c[0] === "input"))).toBe(false);
             await expect.poll(() => frame.evaluate(() => typeof window.__siCallbacks?.registerPrepublishCallback)).toBe("function");
             const check = await frame.evaluate(() => {
                 const result = window.__siCallbacks.registerPrepublishCallback();
@@ -253,6 +306,10 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
             });
             expect(check).toEqual({ usesRenderedDocument: true, label: "Full page", highlightCommand: "applyDefaultHighlighting", hasContent: true });
             await screenshot(popup, testInfo, name + "-preview");
+            await frame.getByRole("link", { name: "Second page", exact: true }).click();
+            await expect(frame.getByRole("heading", { name: "Second Page", exact: true })).toBeVisible();
+            await expect(frame.locator("script[data-siteimprove-preview]")).toHaveAttribute("data-page-url", PUBLIC_ORIGIN + "/second-page/");
+            await expect.poll(() => frame.evaluate(() => window.__siOverlayLoads)).toBe(1);
             await popup.close();
         });
     }
@@ -352,6 +409,13 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
                 || r.url() === OVERLAY) pluginRequests.push(r.url());
         });
         await login(controlPage);
+        for (let i = 0; i < 6; i++) {
+            await navigate(controlPage, documentPath(first));
+            await controlPage.locator('umb-backoffice-header uui-tab[href="section/settings"]').click();
+            await expect(controlPage.getByRole("heading", { name: "Structure", exact: true })).toBeVisible();
+            await controlPage.waitForLoadState("networkidle");
+        }
+        await navigate(controlPage, documentPath(first));
         for (let i = 0; i < 12; i++) {
             const id = i % 2 ? second : first;
             await controlPage.evaluate(path => history.pushState(null, "", path), documentPath(id));
@@ -360,7 +424,13 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         }
         await controlPage.waitForLoadState("networkidle");
         expect(pluginRequests).toEqual([]);
-        expect(controlErrors).toEqual([]);
+        const knownCmsError = error =>
+            (["Tree context is not set", "Could not request children, repository is missing"].includes(error.message)
+                && error.stack?.includes("/packages/core/tree-view-element-base-"))
+            || (error.message === "n.provideAt is not a function"
+                && error.stack?.includes("/packages/core/constants-"));
+        expect(controlErrors.filter(error => !knownCmsError(error))).toEqual([]);
+        baselineErrors = new Set(controlErrors.map(errorSignature));
         console.log("CMS-only control: Siteimprove requests=" + pluginRequests.length
             + ", browser errors=" + controlErrors.length);
         await testInfo.attach("cms-only-navigation-control", {
@@ -368,5 +438,6 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         });
         await controlContext.close();
     });
-    expect(errors).toEqual([]);
+    // A CMS teardown error is accepted only if the plugin-disabled control reproduces its source frame.
+    expect(errors.filter(error => !baselineErrors.has(errorSignature(error)))).toEqual([]);
 });

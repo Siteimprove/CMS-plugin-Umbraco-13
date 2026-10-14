@@ -18,6 +18,7 @@ function setup() {
     const context = {
         UmbControllerBase: Controller, UMB_AUTH_CONTEXT: {}, SiteimproveApi: Api,
         assistant: { clear: () => clears++ }, loadOverlay: async version => overlays.push(version),
+        initializeVisibility: () => {},
         console: { warn: message => warnings.push(message) }
     };
     runInNewContext(source + "\nglobalThis.entrypoint = { onInit, onUnload };", context);
@@ -29,6 +30,13 @@ test("unloading while version is loading prevents late overlay initialization", 
     const pending = s.callbacks[0]({});
     s.onUnload(); s.versions[0].resolve({ version: "17.7.1" }); await pending;
     assert.deepEqual(s.overlays, []); assert.equal(s.clears(), 1);
+});
+
+test("the outer preview shell does not initialize a second assistant", () => {
+    const s = setup();
+    s.onInit({ getHostElement: () => ({ localName: "umb-preview" }) });
+    assert.deepEqual(s.callbacks, []);
+    assert.deepEqual(s.overlays, []);
 });
 
 test("a new backoffice instance supersedes an old initialization", async () => {

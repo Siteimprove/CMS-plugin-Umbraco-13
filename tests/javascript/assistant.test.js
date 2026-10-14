@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import { SiteimproveAssistant } from "../../contentFiles/App_Plugins/Siteimprove/assistant.js";
 
 function setup() {
-    const commands = [], warnings = [];
-    const assistant = new SiteimproveAssistant(c => commands.push(c), m => warnings.push(m));
-    return { assistant, commands, warnings };
+    const commands = [], warnings = [], visibility = [];
+    const assistant = new SiteimproveAssistant(c => commands.push(c), m => warnings.push(m), visible => visibility.push(visible));
+    return { assistant, commands, warnings, visibility };
 }
 function deferred() {
     let resolve;
@@ -66,4 +66,32 @@ test("request failures leave the assistant clear without an unhandled rejection"
     await assistant.select("o", { pageUrl: async () => { throw new Error("Forbidden"); } }, "id", null, false);
     assert.deepEqual(commands, [["clear", ""]]);
     assert.match(warnings[0], /Forbidden/);
+});
+
+test("new and unpublished document workspaces retain the launcher", async () => {
+    const { assistant, visibility } = setup();
+    await assistant.select("new", {}, undefined, null, true);
+    assert.equal(visibility.at(-1), true);
+    await assistant.select("draft", { pageUrl: async () => ({ url: null }) }, "draft", null, false);
+    assert.equal(visibility.at(-1), true);
+    assistant.release("draft");
+    assert.equal(visibility.at(-1), false);
+});
+
+test("an old workspace cannot hide the current document launcher", async () => {
+    const { assistant, visibility } = setup();
+    await assistant.select("current", { pageUrl: async () => ({ url: "https://example.com/" }) }, "id", null, false);
+    assistant.release("old");
+    assert.deepEqual(visibility, [true]);
+    assistant.clear();
+    assert.equal(visibility.at(-1), false);
+});
+
+test("a late document response cannot show the launcher after leaving content", async () => {
+    const { assistant, visibility } = setup(), slow = deferred();
+    const pending = assistant.select("owner", { pageUrl: () => slow.promise }, "id", null, false);
+    assistant.release("owner");
+    slow.resolve({ url: "https://example.com/" });
+    await pending;
+    assert.deepEqual(visibility, [true, false]);
 });
