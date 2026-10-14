@@ -62,7 +62,8 @@ async function navigate(page, path) {
         && response.request().method() === "GET", { timeout: 20000 }) : undefined;
     const section = path.match(/\/section\/([^/]+)/)?.[1];
     const currentSection = new URL(page.url()).pathname.match(/\/section\/([^/]+)/)?.[1];
-    if (currentSection === "user-management" && documentId) {
+    const fullDocumentEntry = documentId && currentSection !== "content";
+    if (fullDocumentEntry) {
         await page.goto(path);
     } else if (section !== currentSection && ["content", "settings"].includes(section)) {
         await page.locator('umb-backoffice-header uui-tab[href="section/' + section + '"]').click();
@@ -76,11 +77,15 @@ async function navigate(page, path) {
     }
     if (documentId) {
         const target = page.locator('umb-document-tree uui-menu-item[href$="/edit/' + documentId + '"] #label');
-        if (currentSection !== "user-management" && !await target.isVisible()) {
-            await page.locator('umb-document-tree uui-menu-item[label="Home"] button#caret-button').click();
+        if (!fullDocumentEntry) {
+            const caret = page.locator('umb-document-tree uui-menu-item[label="Home"] button#caret-button');
+            await expect(caret).toBeVisible();
+            const expand = page.getByRole("button", { name: "Expand child items for Home", exact: true });
+            if (await expand.isVisible()) await expand.click();
+            await expect(target).toBeVisible();
         }
         // Click the slotted label so native hit-testing waits for the menu to be ready.
-        if (currentSection !== "user-management") await target.click();
+        if (!fullDocumentEntry) await target.click();
         await expect(page).toHaveURL(new RegExp("/workspace/document/edit/" + documentId + "/"));
         const response = await documentLoaded;
         expect(response.status()).toBe(200);

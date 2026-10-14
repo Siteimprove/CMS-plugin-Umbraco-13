@@ -8,6 +8,10 @@ initialization, actual saved field text in preview, authorization expiry and
 recovery, and non-content workspace modals. Results are recorded after a complete
 run; the matrix uses a stub overlay and does not certify the vendor service.
 
+Document entry across sections uses a full navigation because cached native tree
+visibility is unreliable after a section change in Umbraco 17.7.1. Document
+switching within Content and section exits still use native menus.
+
 Each CMS-only control records all errors and verifies zero Siteimprove requests.
 The plugin flow rejects unknown or plugin exceptions. It records confirmed CMS
 exceptions and their comparison with that browser's control, including known
