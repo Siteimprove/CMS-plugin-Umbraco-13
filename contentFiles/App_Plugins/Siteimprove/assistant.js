@@ -39,9 +39,10 @@ export function loadOverlay(version) {
     return overlayPromise;
 }
 
-// A single assistant serves all document workspaces. Ownership and a sequence
-// number prevent late responses or an old workspace's teardown changing the page.
+// Workspaces retain their nesting order while the shared assistant follows the
+// newest eligible workspace. A sequence number rejects responses after a switch.
 export class SiteimproveAssistant {
+    #workspaces = new Map();
     #owner;
     #sequence = 0;
     #abort;
@@ -60,7 +61,22 @@ export class SiteimproveAssistant {
         this.#session = id;
         this.push(["setSession", id, null, this.#plugin]);
     }
+    register(owner, isEligible = () => true) {
+        if (!this.#workspaces.has(owner)) this.#workspaces.set(owner, { isEligible });
+    }
     async select(owner, api, id, culture, isNew) {
+        this.register(owner);
+        const selection = { api, id, culture, isNew };
+        this.#workspaces.get(owner).selection = selection;
+        // Parent updates are retained without taking focus from an open child.
+        if (this.#currentWorkspace()?.[0] !== owner) return;
+        return this.#activate(owner, selection);
+    }
+    #currentWorkspace() {
+        const entry = [...this.#workspaces].findLast(([, state]) => state.selection && state.isEligible());
+        return entry && [entry[0], entry[1].selection];
+    }
+    async #activate(owner, { api, id, culture, isNew }) {
         this.#owner = owner;
         this.visibility(true);
         const sequence = ++this.#sequence;
@@ -81,11 +97,25 @@ export class SiteimproveAssistant {
                 this.warn("Siteimprove: " + error.message);
         }
     }
+    suspend(owner) {
+        if (!this.#workspaces.has(owner)) return;
+        this.#workspaces.get(owner).selection = undefined;
+        if (this.#owner === owner) return this.#restore();
+    }
     release(owner) {
-        if (this.#owner !== owner) return;
-        this.clear();
+        this.#workspaces.delete(owner);
+        if (this.#owner === owner) return this.#restore();
+    }
+    #restore() {
+        const parent = this.#currentWorkspace();
+        return parent ? this.#activate(...parent) : this.#reset();
     }
     clear() {
+        // Keep registration order across sign-in, but discard every cached page.
+        for (const state of this.#workspaces.values()) state.selection = undefined;
+        this.#reset();
+    }
+    #reset() {
         this.#owner = undefined;
         this.visibility(false);
         ++this.#sequence;

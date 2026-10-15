@@ -72,6 +72,7 @@ test("new and unpublished document workspaces retain the launcher", async () => 
     const { assistant, visibility } = setup();
     await assistant.select("new", {}, undefined, null, true);
     assert.equal(visibility.at(-1), true);
+    assistant.release("new");
     await assistant.select("draft", { pageUrl: async () => ({ url: null }) }, "draft", null, false);
     assert.equal(visibility.at(-1), true);
     assistant.release("draft");
@@ -152,4 +153,113 @@ test("HTTP backoffices can create isolated sessions without crypto.randomUUID", 
     const sessions = window._si.filter(c => c[0] === "setSession").map(c => c[1]);
     assert.equal(new Set(sessions).size, 2);
     assert.ok(sessions.every(id => /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id)));
+});
+
+test("closing nested document editors restores each surviving parent's URL and launcher", async () => {
+    const { assistant, commands, visibility } = setup();
+    const api = { pageUrl: async id => ({ url: "https://example.com/" + id }) };
+    for (const owner of ["root", "child", "inner"])
+        await assistant.select(owner, api, owner, null, false);
+    for (const [closed, parent] of [["inner", "child"], ["child", "root"]]) {
+        await assistant.release(closed);
+        assert.equal(visibility.at(-1), true);
+        assert.deepEqual(commands.at(-1), ["input", "https://example.com/" + parent, ""]);
+    }
+    assistant.release("root");
+    assert.equal(visibility.at(-1), false);
+});
+
+test("a suspended parent's latest document and culture return without stealing child focus", async () => {
+    const { assistant, commands } = setup();
+    const api = { pageUrl: async (id, culture) => ({ url: `https://example.com/${culture}/${id}` }) };
+    await assistant.select("parent", api, "old", "en-US", false);
+    await assistant.select("child", api, "child", "en-US", false);
+    const count = commands.length;
+    await assistant.select("parent", api, "updated", "da-DK", false);
+    assert.equal(commands.length, count);
+    await assistant.release("child");
+    assert.deepEqual(commands.at(-1), ["input", "https://example.com/da-DK/updated", ""]);
+});
+
+test("restoring a draft parent keeps isolated results instead of the child's published URL", async () => {
+    const { assistant, commands, visibility } = setup();
+    const api = { pageUrl: async id => ({ url: id === "draft" ? null : "https://example.com/child" }) };
+    await assistant.select("parent", api, "draft", null, false);
+    const originalSession = commands.find(c => c[0] === "setSession")[1];
+    await assistant.select("child", api, "child", null, false);
+    await assistant.release("child");
+    assert.equal(visibility.at(-1), true);
+    assert.deepEqual(commands.at(-1), ["clear", ""]);
+    const session = commands.filter(c => c[0] === "setSession").at(-1)[1];
+    assert.match(session, /^[0-9a-f-]{36}$/);
+    assert.notEqual(session, originalSession);
+});
+
+test("a closed parent's pending response cannot replace the restored ancestor", async () => {
+    const { assistant, commands } = setup(), slow = deferred();
+    const api = { pageUrl: async id => ({ url: "https://example.com/" + id }) };
+    await assistant.select("root", api, "root", null, false);
+    const pending = assistant.select("child", { pageUrl: () => slow.promise }, "child", null, false);
+    await assistant.release("child");
+    slow.resolve({ url: "https://example.com/child" });
+    await pending;
+    assert.deepEqual(commands.at(-1), ["input", "https://example.com/root", ""]);
+});
+
+test("closing an inactive parent cannot resurrect it after its child closes", async () => {
+    const { assistant, commands, visibility } = setup();
+    const api = { pageUrl: async id => ({ url: "https://example.com/" + id }) };
+    await assistant.select("parent", api, "parent", null, false);
+    await assistant.select("child", api, "child", null, false);
+    const count = commands.length;
+    assistant.release("parent");
+    assert.equal(commands.length, count);
+    assistant.release("child");
+    assert.equal(visibility.at(-1), false);
+    assert.deepEqual(commands.at(-1), ["clear", ""]);
+});
+
+test("authentication loss discards cached contexts and recovery retains nesting order", async () => {
+    const { assistant, commands, visibility } = setup();
+    const api = { pageUrl: async id => ({ url: "https://example.com/" + id }) };
+    await assistant.select("parent", api, "parent", null, false);
+    await assistant.select("child", api, "child", null, false);
+    assistant.clear();
+    assert.equal(visibility.at(-1), false);
+    await assistant.select("child", api, "child", null, false);
+    const count = commands.length;
+    await assistant.select("parent", api, "parent", null, false);
+    assert.equal(commands.length, count);
+    await assistant.release("child");
+    assert.deepEqual(commands.at(-1), ["input", "https://example.com/parent", ""]);
+    assistant.clear();
+    assistant.release("parent");
+    assert.equal(visibility.at(-1), false);
+});
+
+test("registration order survives late parent initialization and temporary suspension", async () => {
+    const { assistant, commands } = setup();
+    const api = { pageUrl: async id => ({ url: "https://example.com/" + id }) };
+    assistant.register("parent");
+    assistant.register("child");
+    assistant.suspend("parent");
+    await assistant.select("child", api, "child", null, false);
+    const count = commands.length;
+    await assistant.select("parent", api, "parent", null, false);
+    assert.equal(commands.length, count);
+    await assistant.release("child");
+    assert.deepEqual(commands.at(-1), ["input", "https://example.com/parent", ""]);
+});
+
+test("restoration checks current authorization before a parent's observer handles expiry", async () => {
+    const { assistant, commands, visibility } = setup();
+    const api = { pageUrl: async id => ({ url: "https://example.com/" + id }) };
+    let authorized = true;
+    assistant.register("parent", () => authorized);
+    await assistant.select("parent", api, "parent", null, false);
+    await assistant.select("child", api, "child", null, false);
+    authorized = false;
+    assistant.release("child");
+    assert.equal(visibility.at(-1), false);
+    assert.deepEqual(commands.at(-1), ["clear", ""]);
 });

@@ -14,6 +14,8 @@ export class SiteimproveDocumentContext extends UmbContextBase {
     #observationSequence = 0;
     constructor(host) {
         super(host, "Siteimprove.DocumentContext");
+        assistant.register(this.#owner, () => !this.#destroyed && !!this.#api
+            && !!this.#workspace && this.#auth?.getIsAuthorized() === true);
         this.consumeContext(UMB_AUTH_CONTEXT, auth => {
             if (this.#destroyed) return;
             this.#auth = auth;
@@ -34,7 +36,7 @@ export class SiteimproveDocumentContext extends UmbContextBase {
         if (this.#destroyed) return;
         const sequence = ++this.#observationSequence;
         if (!this.#api || !this.#workspace) {
-            assistant.release(this.#owner);
+            assistant.suspend(this.#owner);
             return;
         }
         const workspace = this.#workspace;

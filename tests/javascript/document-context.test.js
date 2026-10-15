@@ -7,9 +7,9 @@ const source = readFileSync(new URL("../../contentFiles/App_Plugins/Siteimprove/
     .replace(/^import .*;\n/gm, "").replace(/^export class /gm, "class ")
     .replace(/^export \{.*\};\n/gm, "");
 function setup() {
-    const authToken = {}, workspaceToken = {}, callbacks = new Map(), selections = [], releases = [];
+    const authToken = {}, workspaceToken = {}, callbacks = new Map(), selections = [], releases = [], registrations = [], suspensions = [];
     let observations = 0;
-    const emissions = [], authStates = [];
+    const emissions = [], authStates = [], eligibility = [];
     class Context {
         consumeContext(token, callback) { callbacks.set(token, callback); }
         observe(_observable, callback, alias) {
@@ -21,11 +21,13 @@ function setup() {
     const context = {
         UmbContextBase: Context, UMB_AUTH_CONTEXT: authToken, UMB_DOCUMENT_WORKSPACE_CONTEXT: workspaceToken,
         SiteimproveApi: class {}, observeMultiple: values => values,
-        assistant: { select: (...args) => selections.push(args), release: owner => releases.push(owner) }
+        assistant: { register: (owner, isEligible) => { registrations.push(owner); eligibility.push(isEligible); }, suspend: owner => suspensions.push(owner),
+            select: (...args) => selections.push(args), release: owner => releases.push(owner) }
     };
     runInNewContext(source + "\nglobalThis.Context = SiteimproveDocumentContext;", context);
     return {
-        instance: new context.Context({}), selections, releases, emissions, authStates, observations: () => observations,
+        instance: new context.Context({}), selections, releases, registrations, suspensions, emissions, authStates, observations: () => observations,
+        isEligible: () => eligibility[0](),
         auth: value => callbacks.get(authToken)(value), workspace: value => callbacks.get(workspaceToken)(value)
     };
 }
@@ -76,13 +78,14 @@ test("queued document emissions after destruction cannot select content", () => 
 });
 
 
-test("timeout on the same auth context releases content and rejects queued document changes", () => {
+test("timeout suspends content without changing workspace registration order", () => {
     const s = setup(); s.auth({}); s.workspace(workspace());
     const count = s.selections.length;
     s.authStates[0](false);
     s.emissions[0](["late-doc", false, {}, []]);
     assert.equal(s.selections.length, count);
-    assert.equal(s.releases.at(-1), s.selections[0][0]);
+    assert.equal(s.suspensions.at(-1), s.selections[0][0]);
+    assert.deepEqual(s.registrations, [s.selections[0][0]]);
     s.authStates[0](true);
     assert.equal(s.selections.length, count + 1);
 });
@@ -92,4 +95,17 @@ test("a replaced auth context's observer cannot restore access or release the ne
     const count = s.selections.length, releases = s.releases.length;
     s.authStates[0](false); s.authStates[0](true);
     assert.equal(s.selections.length, count); assert.equal(s.releases.length, releases);
+});
+
+test("restoration eligibility reflects live authorization before queued observers run", () => {
+    const s = setup();
+    let authorized = true;
+    assert.equal(s.isEligible(), false);
+    s.auth({ getIsAuthorized: () => authorized }); s.workspace(workspace());
+    assert.equal(s.isEligible(), true);
+    authorized = false;
+    assert.equal(s.isEligible(), false);
+    authorized = true;
+    s.instance.destroy();
+    assert.equal(s.isEligible(), false);
 });

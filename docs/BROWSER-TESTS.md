@@ -1,5 +1,53 @@
 # Browser functionality tests
 
+## Beta 6 nested workspace restoration
+
+The assistant retains each live workspace's document and culture in nesting
+order. Closing a child revalidates the surviving parent's current URL and
+restores its launcher. Parent updates cannot override an open child; closed and
+unauthorized contexts cannot be restored. Returning to a draft uses a fresh
+isolated results session.
+
+Coverage includes 50 JavaScript regressions, 35 backend regressions and package
+install/publish asset checks. The browser matrix combines the original lifecycle
+suite, native creation/two-level picker workflows and CMS-only auth diagnostics
+across Chromium, Firefox and WebKit. The picker cases assert both launcher and
+panel visibility and the exact parent URL at each return level.
+
+## 15 October workflow follow-up
+
+`document-workflows.spec.js` adds native document creation and save, a document
+picker fixture, and two nested document workspace editors. The new-document
+checks passed in Chromium, Firefox and WebKit. All three plugin-disabled workflows
+passed with zero Siteimprove requests.
+
+The three plugin-enabled cases failed against beta.5:
+closing the inner editor hides the launcher and clears its parent URL; closing
+the outer editor leaves the main editor in the same cleared state. Reloading
+restores the assistant. The failure was also reproduced with the real overlay on
+the self-hosted installation. The same regression cases now exercise the beta.6
+restoration fix without skipping or expecting those failures.
+
+`cms-auth-recovery.spec.js` records native section-navigation errors and an
+expired-session recovery with all Siteimprove manifests disabled. It expires
+the disposable browser's server cookies before calling the public auth timeout
+API; otherwise background refresh can restore the session before the modal is
+usable. The diagnostic records console errors even when sign-in succeeds. A
+passing recovery does not imply a clean CMS console. All three recovery controls
+passed: Chromium, Firefox and WebKit recorded 39, 31 and 10 uncaught CMS errors,
+respectively, with zero Siteimprove requests. The auth modal's double-success
+`_subject is undefined` error reproduced in Chromium and WebKit and was also
+seen on the live installation; Firefox did not reproduce it in this run.
+
+Run these cases against freshly prepared disposable hosts:
+
+```sh
+npm --prefix tests/browser test -- document-workflows.spec.js cms-auth-recovery.spec.js
+```
+
+The historical follow-up used the packaged beta.5 plugin. Current runs install
+the version in `Directory.Build.props` from its NuGet package.
+
 ## Beta 5 coverage
 
 The current candidate has 41 passing JavaScript checks, 35 backend checks and
