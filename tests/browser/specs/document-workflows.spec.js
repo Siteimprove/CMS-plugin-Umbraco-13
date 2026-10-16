@@ -25,6 +25,8 @@ async function setup(page, context, enabled) {
     await page.locator('[name="password"]').fill(process.env.E2E_ADMIN_PASSWORD);
     await page.getByLabel("Login", { exact: true }).click();
     await expect(page.locator("umb-backoffice")).toBeVisible();
+    // The shell appears before the initial dashboard's lazy import completes.
+    await expect(page.locator("umb-umbraco-news-dashboard")).toBeVisible();
     async function api(path, data, method = "POST") {
         const response = await page.request.fetch(API + path, {
             method, headers: { Authorization: token }, ...(data ? { data } : {})

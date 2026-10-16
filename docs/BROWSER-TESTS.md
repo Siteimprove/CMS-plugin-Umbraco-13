@@ -24,6 +24,14 @@ unrelated modules and unrelated TypeErrors. Distribution requires a complete
 successful matrix for the final source commit; a bundle's `release.json` identifies
 that build and workflow for verification.
 
+The [next workflow](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38886968441)
+passed the WebKit lifecycle case. Its stricter Firefox picker control caught
+an initial news-dashboard import interrupted by the fixture's full navigation.
+The trace records navigation at 197142 ms, the module request at 197173 ms with
+no response, and the import error at 197178 ms. Setup now waits for the rendered
+news dashboard before creating fixtures and navigating. The error remains a
+failure; it was not added to the known-CMS classifier.
+
 ## 15 October workflow follow-up
 
 `document-workflows.spec.js` adds native document creation and save, a document
