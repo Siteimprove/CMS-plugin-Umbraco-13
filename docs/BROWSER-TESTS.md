@@ -63,6 +63,12 @@ document update response specifically; the earlier substring match also accepted
 the preceding validation response. The preview still must show the exact renamed
 heading and saved draft body.
 
+The [next run](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38909255979)
+passed the Chromium preview and all authentication controls. Firefox's saved
+document was already open when preview setup clicked its tree item again;
+the trace records no document GET after that click. The first preview now opens
+directly from the saved editor instead of waiting for a redundant navigation.
+
 ## 15 October workflow follow-up
 
 `document-workflows.spec.js` adds native document creation and save, a document

@@ -318,7 +318,8 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
     for (const [name, id] of [["published", () => first], ["never-published", () => previewDraft],
         ["other-draft", () => otherPreviewDraft], ["reopened-draft", () => previewDraft]]) {
         await test.step(name + " preview registers a full-page prepublish callback and highlighting", async () => {
-            await navigate(page, documentPath(id()));
+            // The published document is already open from the preceding save step.
+            if (name !== "published") await navigate(page, documentPath(id()));
             const popupPromise = page.waitForEvent("popup");
             await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPreview").click();
             const popup = await popupPromise;
