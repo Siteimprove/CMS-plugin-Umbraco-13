@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Siteimprove.Umbraco17.Plugin.Services;
 using Umbraco.Cms.Core.Configuration;
@@ -8,7 +9,8 @@ using Umbraco.Cms.Core.Web;
 
 namespace Siteimprove.Umbraco17.Plugin.Middlewares;
 
-public sealed class PreviewScriptInjectionMiddleware(RequestDelegate next)
+public sealed class PreviewScriptInjectionMiddleware(RequestDelegate next,
+    ILogger<PreviewScriptInjectionMiddleware> logger)
 {
     // Resolve scoped services per request, rather than in the middleware constructor.
     public async Task InvokeAsync(HttpContext context, IPreviewService previewService,
@@ -39,7 +41,18 @@ public sealed class PreviewScriptInjectionMiddleware(RequestDelegate next)
                 buffer.Position = 0;
                 using var reader = new StreamReader(buffer, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
                 var html = await reader.ReadToEndAsync(context.RequestAborted);
-                var pageUrl = await publicUrlService.GetPageUrlAsync(content.Key, umbracoContext.PublishedRequest.Culture);
+                string? pageUrl = null;
+                try
+                {
+                    pageUrl = await publicUrlService.GetPageUrlAsync(content.Key, umbracoContext.PublishedRequest.Culture);
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException
+                    && !context.RequestAborted.IsCancellationRequested)
+                {
+                    logger.LogWarning(exception,
+                        "Could not resolve the published URL for document {DocumentKey}. Continuing with URL-less preview checks.",
+                        content.Key);
+                }
                 var modified = PreviewHtmlInjector.Inject(html, context.Request.PathBase.Value ?? "", pageUrl,
                     umbracoVersion.Version.ToString());
                 if (modified != html)
