@@ -55,6 +55,7 @@ async function login(page, email = "admin@example.test") {
     await page.locator('[name="password"]').fill(process.env.E2E_ADMIN_PASSWORD);
     await page.getByLabel("Login", { exact: true }).click();
     await expect(page.locator("umb-backoffice")).toBeVisible();
+    await expect(page.locator("umb-umbraco-news-dashboard")).toBeVisible();
 }
 async function navigate(page, path) {
     const documentId = path.match(/\/workspace\/document\/edit\/([^/]+)/)?.[1];
@@ -228,8 +229,13 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         groups = (await json("user-group?skip=0&take=100")).items;
         writer = groups.find(g => /writers|editors/i.test(g.name));
         expect(writer).toBeTruthy();
+        // Fixture creation refreshes the tree; let its lazy modules finish before reloading.
+        await expect(page.locator("umb-document-tree").getByText("Home", { exact: true })).toBeVisible();
+        await page.waitForLoadState("networkidle");
         await page.reload();
         await expect(page.locator("umb-backoffice")).toBeVisible();
+        await expect(page.locator("umb-umbraco-news-dashboard")).toBeVisible();
+        await expect(page.locator("umb-document-tree").getByText("Home", { exact: true })).toBeVisible();
     });
 
     await test.step("Siteimprove lives in Settings and saves a public domain without a custom section grant", async () => {

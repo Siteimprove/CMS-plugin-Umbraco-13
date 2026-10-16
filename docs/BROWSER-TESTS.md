@@ -69,6 +69,15 @@ document was already open when preview setup clicked its tree item again;
 the trace records no document GET after that click. The first preview now opens
 directly from the saved editor instead of waiting for a redundant navigation.
 
+The [following run](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38910930455)
+passed Chromium and Firefox. WebKit completed its functional assertions but
+recorded a native module import failure: fixture setup reloaded at trace time
+362314 ms, document-tree item module requests were aborted at 362344–362347 ms,
+and the extension loader reported the error at 362350 ms. Login now waits for
+the initial dashboard; fixture setup waits for the new Home tree item and idle
+requests before reloading, then waits for the dashboard and Home item afterward.
+Module import errors remain failures.
+
 ## 15 October workflow follow-up
 
 `document-workflows.spec.js` adds native document creation and save, a document
