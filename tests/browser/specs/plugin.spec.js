@@ -298,8 +298,15 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
 
     await test.step("save a renamed draft while keeping the published route", async () => {
         await navigate(page, documentPath(first));
-        await page.getByRole("textbox", { name: "Enter a name...", exact: true }).fill("Renamed First Page");
-        await page.locator("umb-property-editor-ui-text-box input").fill(savedDraftText);
+        const name = page.getByRole("textbox", { name: "Enter a name...", exact: true });
+        const text = page.locator("umb-property-editor-ui-text-box input");
+        await name.fill("Renamed First Page");
+        // Move focus through the native editor before filling its input.
+        await text.click();
+        await expect(text).toBeFocused();
+        await text.fill(savedDraftText);
+        await expect(name).toHaveValue("Renamed First Page");
+        await expect(text).toHaveValue(savedDraftText);
         const saved = page.waitForResponse(r => r.url().includes("/document/" + first) && r.request().method() === "PUT" && r.status() === 200);
         await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.Save").click();
         await saved;

@@ -53,6 +53,14 @@ starting its native section-navigation loop, as the document-workflow setup
 already does. Navigation assertions, authentication recovery, error recording
 and the zero-Siteimprove-request check remain in place.
 
+The [verification run](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38907794823)
+passed all three authentication controls. Chromium's preview case exposed a
+separate input-focus race: its saved request appended the draft body text to the
+page name and retained the original body value. The rendered preview matched
+that request. Setup now clicks the body editor and checks its focus before
+filling it, then verifies both input values before saving. The preview still
+must show the exact renamed heading and saved draft body.
+
 ## 15 October workflow follow-up
 
 `document-workflows.spec.js` adds native document creation and save, a document
