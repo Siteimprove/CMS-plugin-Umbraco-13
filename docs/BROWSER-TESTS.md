@@ -41,6 +41,18 @@ calls `provideAt` on the view controller; [controller destruction](https://githu
 sets that method to undefined. The classifier includes this confirmed first frame;
 other modules and later CMS callers remain rejected by regression tests.
 
+## 16 October authentication-control setup
+
+The [preview follow-up workflow](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38905879390)
+passed 17 of 18 browser cases. WebKit's CMS-only authentication control clicked
+Media while the initial Content route was still loading: the trace shows the
+Media URL after the click, followed by the Content tree and welcome dashboard
+loading instead. No Media dashboard appeared, so authentication recovery was
+never reached. The control now waits for the rendered welcome dashboard before
+starting its native section-navigation loop, as the document-workflow setup
+already does. Navigation assertions, authentication recovery, error recording
+and the zero-Siteimprove-request check remain in place.
+
 ## 15 October workflow follow-up
 
 `document-workflows.spec.js` adds native document creation and save, a document

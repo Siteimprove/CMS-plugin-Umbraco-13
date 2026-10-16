@@ -18,7 +18,8 @@ test("CMS-only authentication recovery and native section navigation diagnostics
     await page.locator('[name="password"]').fill(process.env.E2E_ADMIN_PASSWORD);
     await page.getByLabel("Login", { exact: true }).click();
     await expect(page.locator("umb-backoffice")).toBeVisible();
-    await page.waitForLoadState("networkidle");
+    // The shell appears before initial routing finishes and can overwrite an early section change.
+    await expect(page.locator("umb-umbraco-news-dashboard")).toBeVisible();
     const header = page.locator("umb-backoffice-header");
     let navigationErrors = [], recovered = 0;
     try {
