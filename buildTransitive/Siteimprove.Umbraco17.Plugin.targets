@@ -1,0 +1,24 @@
+<Project>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)../contentFiles/any/any/App_Plugins/Siteimprove/**/*"
+             Link="App_Plugins/Siteimprove/%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"
+             Visible="false" />
+  </ItemGroup>
+  <!-- Web SDK includes JSON copied into the project as Content on later builds.
+       Use the package's Content items once, avoiding duplicate publish paths. -->
+  <Target Name="RemoveSiteimproveDuplicateProjectAssets" BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <Content Remove="App_Plugins/Siteimprove/**/*;$(MSBuildProjectDirectory)/App_Plugins/Siteimprove/**/*" />
+      <None Remove="App_Plugins/Siteimprove/**/*;$(MSBuildProjectDirectory)/App_Plugins/Siteimprove/**/*" />
+    </ItemGroup>
+  </Target>
+  <Target Name="CopySiteimproveDevelopmentAssets" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <SiteimproveAssets Include="$(MSBuildThisFileDirectory)../contentFiles/any/any/App_Plugins/Siteimprove/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(SiteimproveAssets)"
+          DestinationFiles="@(SiteimproveAssets->'$(MSBuildProjectDirectory)/App_Plugins/Siteimprove/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

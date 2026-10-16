@@ -1,57 +1,64 @@
-name: CI
-
+name: Umbraco 17 validation
 on:
-    push:
-        branches: ["master"]
-    pull_request:
-        branches: ["master"]
-
-env:
-    VERSION: 1.0.${{ github.run_number }}.${{ github.run_attempt }}
-
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 jobs:
-    deploy-nuget:
-        name: Build, upload artifact and deploy
-        runs-on: ubuntu-latest
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: JavaScript regression tests
+        run: npm test
+      - name: Customer bundle verification regressions
+        run: python3 -m unittest discover -s tests/python -v
+      - name: Backend and preview regression tests
+        run: dotnet test tests/Siteimprove.Umbraco17.Plugin.Tests.csproj -c Release
+      - name: Pack
+        run: dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
+      - name: Verify NuGet installation and published assets
+        run: bash scripts/verify-package.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Siteimprove-Umbraco17-package
+          path: artifacts/*.nupkg
+      - name: Prepare isolated CMS hosts and three browser engines
+        run: bash scripts/prepare-browser-tests.sh
+      - name: Playwright functional tests
+        run: |
+          export E2E_ADMIN_PASSWORD="$(node -e "process.stdout.write('E2e!' + require('node:crypto').randomBytes(24).toString('hex'))")"
+          npm --prefix tests/browser test
+      - name: Create verified customer beta bundle
         env:
-            DOTNET_INSTALL_DIR: "./.dotnet"
-        steps:
-            - uses: actions/checkout@v3
-            - uses: ./.github/actions/env-setup
+          BETA_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 scripts/create-beta-bundle.py
+      - name: Upload customer beta bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Siteimprove-Umbraco17-beta
+          path: |
+            artifacts/*.customer.zip
+            artifacts/*.customer.zip.sha256
+          if-no-files-found: error
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Siteimprove-Playwright-evidence
+          path: |
+            tests/browser/test-results/
+            tests/browser/playwright-report/
+# Customer prerelease publication and stable release acceptance remain separate.
 
-            - name: Setup .NET
-              uses: actions/setup-dotnet@v3
-              with:
-                  dotnet-version: 8.0.x
-
-            # The NuGet package is generated on the build
-            - name: Build .NET
-              run: dotnet build -c Release -p:Version="${{ env.VERSION }}" -p:InformationalVersion="${{ env.LONG_VERSION }}"
-
-            - name: Create Github release
-              uses: actions/create-release@v1
-              id: create_release
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
-              with:
-                  prerelease: ${{ env.IS_PRERELEASE }}
-                  release_name: ${{ env.LONG_VERSION }}
-                  tag_name: ${{ env.LONG_VERSION }}
-
-            - name: Get NuGet package name
-              id: get_package_name
-              run: echo "PACKAGE_NAME=$(basename $(ls ./bin/Release/*.nupkg))" >> $GITHUB_ENV
-
-            - name: Upload artifact
-              uses: actions/upload-release-asset@v1
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
-              with:
-                  upload_url: ${{ steps.create_release.outputs.upload_url }}
-                  asset_path: ./bin/Release/${{ env.PACKAGE_NAME }}
-                  asset_name: ${{ env.PACKAGE_NAME }}
-                  asset_content_type: application/octet-stream
-
-            - name: Push NuGet package to NuGet.org
-              if: github.ref_name == 'master'
-              run: dotnet nuget push ./bin/Release/${{ env.PACKAGE_NAME }} --api-key ${{ secrets.NUGET_ORG_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

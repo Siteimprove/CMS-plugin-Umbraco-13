@@ -1,52 +1,45 @@
-# Siteimprove Content Assistant plugin for Umbraco
+# Siteimprove CMS plugin
 
-## Description
+Integrates Siteimprove Content Assistant with Umbraco, bringing content quality,
+accessibility and SEO insights into the editing workflow. A valid Siteimprove
+account is required.
 
-Seamless integration of Siteimprove's insights.
+## Umbraco versions and packages
 
-Transform your content creation process with the `Siteimprove Content Assistant`, which integrates Siteimprove’s industry-leading insights directly into Umbraco.
+| Umbraco version | NuGet package | Release status |
+| --- | --- | --- |
+| 13 | `Siteimprove.Umbraco13.Plugin` | Available on NuGet.org |
+| 17.7.1 or later in the 17.x series | `Siteimprove.Umbraco17.Plugin` | Customer beta; not yet published to NuGet.org |
 
-This integration helps optimize your content before publishing, enhancing productivity and quality while ensuring it meets the highest standards of compliance. It makes your website more inclusive and helps drive more traffic.
+This listing covers separate implementations for Umbraco 13 and 17. Support for
+Umbraco 14, 15 and 16 is not claimed.
 
-Key Features:
+## Install on Umbraco 13
 
--   Effortless Integration: Instantly connect Siteimprove’s insights to Umbraco content.
--   Real-time Feedback: Receive immediate suggestions and improvements for your content as you work, helping you maintain high standards of quality and compliance even before you publish.
--   Enhanced Accessibility: Ensure your content meets all accessibility guidelines, making your website inclusive for all users.
--   SEO Optimization: Get actionable recommendations to improve your search engine rankings and increase website traffic.
+```sh
+dotnet add package Siteimprove.Umbraco13.Plugin
+```
 
-## Installation
+Build and restart the application, then reload the backoffice. See the
+[Umbraco 13 guide](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/umbraco-13/README.md)
+for configuration and usage.
 
-### Prerequisites
+## Install on Umbraco 17
 
--   Umbraco CMS (version 13)
--   A valid Siteimprove account
+The v17 package targets .NET 10 and is intended for Umbraco Cloud and self-hosted
+applications. Features include published-page insights, preview prepublish checks
+and highlighting, multilingual URL resolution, and optional public-domain mapping.
 
-### Installation Steps
+During the beta, follow the
+[Umbraco 17 installation guide](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/port/umbraco-17/docs/INSTALLATION.md)
+to obtain and install the package from a local feed. Stable release requires
+acceptance on both Cloud and self-hosted Umbraco 17.
 
-1. **Download the nuget package**:
-    ```sh
-    dotnet add package Siteimprove.Umbraco13.Plugin
-    ```
-1. **Build your project and files will be copied to**:
-    ```sh
-    ~/App_Plugins/Siteimprove
-    ```
+For editor workflows, connectivity requirements and preview-provider limitations,
+see the
+[Umbraco 17 usage guide](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/port/umbraco-17/docs/USAGE.md).
 
-## How the plugin works?
-
-As soon as you login to Umbraco, you will be able to see the `Siteimprove Content Assistant` icon on the right (or left, depending on your settings).
-
-If you click on it you will open the side panel, but will only be able to see it's default page. To see some data, you will need to select some content.
-
-The URL of the selected content will be sent to the `Siteimprove Content Assistant`, and if the selected site/page is connected with Siteimprove environment, then you will be able to see some data related to that specific page on the `Live` tab.
-
-You can also go the the preview of a specific page and then you will be able to run a prepublish check. In this case, insights will be provided even if the page/site is not configured inside Siteimprove yet.
-
-## Configuration in Umbraco
-
-There's a Siteimprove section in the main menu, added by this plugin, where you can define a public URL. To display this section you will need allow it, going to the `Users` tab, selecting the option to edit section, and then adding `Siteimprove`. After that, you will need to logout and login again, and then you will be able to see the new section.
-
-The purpose of this section is to define a new domain, when necessary, to replace the Umbraco domain. Then the URL with the new domain will be the one that will be passed to the `Siteimprove Content Assistant`. It can also be used for testing purpose.
-
-For example, if you defined the public URL value as https://yourdomain and the URL of content page you are accessing now is https://umbracodomain/about/, the final URL that will be passed to Siteimprove is https://yourdomain/about/.
+When upgrading a site from Umbraco 13, follow Umbraco's CMS upgrade process, then
+remove `Siteimprove.Umbraco13.Plugin` and stale `App_Plugins/Siteimprove` files
+before installing the v17 package. Follow the installation guide for the full
+upgrade steps.
