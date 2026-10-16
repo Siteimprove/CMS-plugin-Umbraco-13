@@ -307,7 +307,8 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         await text.fill(savedDraftText);
         await expect(name).toHaveValue("Renamed First Page");
         await expect(text).toHaveValue(savedDraftText);
-        const saved = page.waitForResponse(r => r.url().includes("/document/" + first) && r.request().method() === "PUT" && r.status() === 200);
+        const saved = page.waitForResponse(r => new URL(r.url()).pathname === API + "document/" + first
+            && r.request().method() === "PUT" && r.status() === 200);
         await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.Save").click();
         await saved;
         expect((await json("siteimprove/document/" + first + "/url")).url).toBe(PUBLIC_ORIGIN + "/first-page/");

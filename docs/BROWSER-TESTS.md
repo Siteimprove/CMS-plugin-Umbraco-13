@@ -58,8 +58,10 @@ passed all three authentication controls. Chromium's preview case exposed a
 separate input-focus race: its saved request appended the draft body text to the
 page name and retained the original body value. The rendered preview matched
 that request. Setup now clicks the body editor and checks its focus before
-filling it, then verifies both input values before saving. The preview still
-must show the exact renamed heading and saved draft body.
+filling it, then verifies both input values before saving. It waits for the
+document update response specifically; the earlier substring match also accepted
+the preceding validation response. The preview still must show the exact renamed
+heading and saved draft body.
 
 ## 15 October workflow follow-up
 
