@@ -229,8 +229,7 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
         groups = (await json("user-group?skip=0&take=100")).items;
         writer = groups.find(g => /writers|editors/i.test(g.name));
         expect(writer).toBeTruthy();
-        // Fixture creation refreshes the tree; let its lazy modules finish before reloading.
-        await expect(page.locator("umb-document-tree").getByText("Home", { exact: true })).toBeVisible();
+        // Let the initial dashboard requests finish before reloading the API-created fixtures.
         await page.waitForLoadState("networkidle");
         await page.reload();
         await expect(page.locator("umb-backoffice")).toBeVisible();

@@ -74,8 +74,9 @@ passed Chromium and Firefox. WebKit completed its functional assertions but
 recorded a native module import failure: fixture setup reloaded at trace time
 362314 ms, document-tree item module requests were aborted at 362344–362347 ms,
 and the extension loader reported the error at 362350 ms. Login now waits for
-the initial dashboard; fixture setup waits for the new Home tree item and idle
-requests before reloading, then waits for the dashboard and Home item afterward.
+the initial dashboard; fixture setup waits for idle requests before reloading,
+then waits for the dashboard and Home item afterward. The initial tree does not
+refresh for API-created fixtures, so Home is checked only after the reload.
 Module import errors remain failures.
 
 ## 15 October workflow follow-up
