@@ -4,11 +4,11 @@ This beta ports Siteimprove Content Assistant to **Umbraco 17.7.1+ (17.x)** on
 **.NET 10**, for customer acceptance testing on Umbraco Cloud or self-hosted sites.
 It is not a stable release and is not published to NuGet.org.
 
-Beta.5 isolates unpublished draft results and resolves preview live URLs from published content and routing state,
-including renamed drafts and unpublished cultures. It hides the launcher and
-panel outside document editing and rendered preview while retaining draft checks.
+Beta.6 restores the parent document's launcher and URL after closing nested
+document editors, retains parent culture updates, and rejects closed or unauthorized
+contexts. It includes beta.5's isolated draft results, published-route preview URL
+resolution, and visibility and authentication fixes.
 See [beta.6 changes](releases/1.0.0-beta.6.md) and [review findings](REVIEW.md).
-Beta.5 also hides controls after authentication expires and in non-content workspace modals, rejects stale observers, and supports HTTP backoffices.
 Opening or reloading an unpublished preview starts with no prior results. Run a
 content check to analyze that rendered draft; Recheck draft and highlighting remain
 available while the preview is open.
@@ -22,19 +22,23 @@ the v13 database setting. Installing it does not upgrade the CMS itself.
 
 - `Siteimprove.Umbraco17.Plugin.1.0.0-beta.6.nupkg`: installable NuGet package.
 - `START-HERE.md`, `README.md`, and `docs/`: installation, usage, beta notes,
-  automated-test evidence, and acceptance guidance.
+  release notes, automated-test evidence, acceptance and release guidance.
 - `release.json`: version, source commit, build commit, package checksum, and
-  the validation workflow URL when built in GitHub Actions.
+  source worktree status and validation workflow URL when built in GitHub Actions.
 - `SHA256SUMS`: checksums of all the other files in the customer ZIP.
 
 The CI customer bundle is created only after regression tests, package
 installation/publish checks, and the Chromium, Firefox and WebKit/Playwright flows pass.
-The exact beta run is recorded in its `release.json`.
+Creation also verifies NuGet/source asset equality, package/build commit equality,
+guide links, required contents and every checksum. The exact beta run is recorded
+in `release.json`; confirm that it completed successfully before distribution.
 
 For an extracted bundle on Linux/macOS with `sha256sum`, run
 `sha256sum --check SHA256SUMS`. On PowerShell, use
 `Get-FileHash ./Siteimprove.Umbraco17.Plugin.1.0.0-beta.6.nupkg -Algorithm SHA256`
 and compare the hash with `SHA256SUMS` or `release.json`.
+The source repository also provides a [complete bundle verifier](RELEASING.md),
+including release provenance checks.
 
 ## Install
 

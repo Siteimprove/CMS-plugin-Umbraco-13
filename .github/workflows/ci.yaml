@@ -22,6 +22,8 @@ jobs:
           dotnet-version: "10.0.x"
       - name: JavaScript regression tests
         run: npm test
+      - name: Customer bundle verification regressions
+        run: python3 -m unittest discover -s tests/python -v
       - name: Backend and preview regression tests
         run: dotnet test tests/Siteimprove.Umbraco17.Plugin.Tests.csproj -c Release
       - name: Pack

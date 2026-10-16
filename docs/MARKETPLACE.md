@@ -26,6 +26,11 @@ The v13 mapping does not establish compatibility with Umbraco 14–16.
 
 ## Release and consolidation
 
+The checked-in metadata is preparation for publication. A successful beta workflow
+does not publish NuGet packages or update the live Marketplace listing. Record
+the accepted package version and the validated listing URLs when these steps are
+completed; until then the v17 release remains a customer beta.
+
 1. Complete the stable release acceptance checks in [VALIDATION.md](VALIDATION.md).
 2. Merge the Marketplace metadata and shared README into the default branch.
    Preserve the v13 source and guide on `umbraco-13`.

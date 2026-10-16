@@ -20,9 +20,11 @@ the application is published self-contained. No plugin npm build is required.
 
 ## 1. Obtain the beta package
 
-Use a beta.3 package or customer ZIP supplied by Siteimprove, or build the current
-package from source. The [previous beta.2 artifact](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38471887229/artifacts/11852846554)
-is available for comparison and does not contain the beta.3 fixes.
+Use the beta.6 customer ZIP supplied by Siteimprove or the `Siteimprove-Umbraco17-beta`
+artifact from a successful validation run for the intended source commit. Follow
+the bundle's `START-HERE.md` and verify its checksums before installation. Historical
+beta artifacts do not contain all current fixes. See [release preparation](RELEASING.md)
+for provenance and verification commands.
 
 Check out this repository's `port/umbraco-17` branch and run
 from its root:
@@ -32,7 +34,8 @@ dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
 ```
 
 Use the resulting `.nupkg` from `artifacts`. Keep the exact package used for a
-deployment so it can be reproduced or restored.
+deployment so it can be reproduced or restored. A local build does not establish
+that the browser matrix or customer acceptance has passed.
 
 ## 2. Make the package available during restore
 

@@ -9,10 +9,10 @@ at implementation time. Restoring the original 17.0.0 dependency baseline raised
 NuGet vulnerability warnings for its transitive packages; consumers should use
 current patched Umbraco releases.
 
-## Current beta.5 quality pass
+## Current beta.6 validation status
 
 The package targets Umbraco 17.7.1 and .NET 10. Local validation uses SDK
-10.0.402 and runtime 10.0.13. Current regression coverage includes 41 JavaScript
+10.0.402 and runtime 10.0.13. Current regression coverage includes 53 JavaScript
 checks and 35 backend checks. The NuGet archive and clean-consumer build/publish
 checks compare every installed asset with the source.
 
@@ -21,6 +21,16 @@ disposable CMS installations. It covers saved draft field text, isolated result
 sessions, timeout/recovery, HTTP backoffices and template/document-type modals,
 in addition to permissions, publishing, settings, preview and CDN failure.
 See [browser evidence](BROWSER-TESTS.md) for the latest completed run and boundaries.
+
+The [first beta.6 workflow](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38725427278)
+passed JavaScript, backend and clean-consumer package checks, and 17 of 18 browser
+cases. Its WebKit plugin-disabled control rejected the native CMS error
+`provideAt is not a function` with WebKit's appended expression explanation.
+The classifier now accepts that suffix only when the first source frame is the
+confirmed Umbraco workspace module; unknown errors remain failures. Distribution
+requires a complete successful run for the final source commit. Verify its
+commit and workflow using the customer bundle's `release.json` and
+[release verification procedure](RELEASING.md).
 
 The self-hosted test deployment has real-service draft analysis evidence,
 multilingual routes and two site roots. The backup restore drill passed in an

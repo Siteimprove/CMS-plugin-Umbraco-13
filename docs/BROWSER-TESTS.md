@@ -8,11 +8,21 @@ restores its launcher. Parent updates cannot override an open child; closed and
 unauthorized contexts cannot be restored. Returning to a draft uses a fresh
 isolated results session.
 
-Coverage includes 50 JavaScript regressions, 35 backend regressions and package
+Coverage includes 53 JavaScript regressions, 35 backend regressions and package
 install/publish asset checks. The browser matrix combines the original lifecycle
 suite, native creation/two-level picker workflows and CMS-only auth diagnostics
 across Chromium, Firefox and WebKit. The picker cases assert both launcher and
 panel visibility and the exact parent URL at each return level.
+
+The [first beta.6 workflow](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38725427278)
+passed 17 of 18 browser cases, including the nested-editor regression cases.
+The WebKit plugin-disabled navigation control failed because its known CMS
+workspace error appended an expression explanation to `provideAt is not a function`.
+The shared classifier now accepts that WebKit suffix only with the confirmed
+Umbraco workspace source frame. Regressions reject the same text from plugin or
+unrelated modules and unrelated TypeErrors. Distribution requires a complete
+successful matrix for the final source commit; a bundle's `release.json` identifies
+that build and workflow for verification.
 
 ## 15 October workflow follow-up
 
@@ -48,9 +58,9 @@ npm --prefix tests/browser test -- document-workflows.spec.js cms-auth-recovery.
 The historical follow-up used the packaged beta.5 plugin. Current runs install
 the version in `Directory.Build.props` from its NuGet package.
 
-## Beta 5 coverage
+## Historical beta.5 coverage
 
-The current candidate has 41 passing JavaScript checks, 35 backend checks and
+Beta.5 has 41 passing JavaScript checks, 35 backend checks and
 clean-consumer package checks. Its three-browser matrix adds HTTP session
 initialization, actual saved field text in preview, authorization expiry and
 recovery, and non-content workspace modals. Results are recorded after a complete

@@ -31,7 +31,23 @@ would add maintenance work without addressing the findings above. The shared
 version file removes duplication where it affects packaging; the plain modules
 continue to use Umbraco's import map.
 
-## Validation
+## Current beta.6 validation
+
+The candidate includes 53 JavaScript and 35 backend regressions, clean-consumer
+package checks, three-browser lifecycle coverage and nested document/picker
+restoration flows. The [first beta.6 workflow](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38725427278)
+passed the build/package checks and 17 of 18 browser cases. WebKit's plugin-disabled
+control failed on a confirmed native workspace error with WebKit's appended
+expression explanation. The classifier correction and release bundle verification
+changes require a complete successful workflow before distribution; a bundle's
+`release.json` identifies the final build and workflow to check.
+See [browser evidence](BROWSER-TESTS.md).
+
+Bundle creation verifies that packaged assets, README and build targets match
+source, that the NuGet repository commit matches the bundle build commit, and
+that required guides, release notes and checksums are complete.
+
+## Historical beta.2 validation
 
 Beta.2 passed 19 JavaScript tests, 26 backend tests, package installation/publish
 checks, and the full Playwright flow on real Umbraco 17.7.1. Both the native
@@ -41,10 +57,11 @@ tested source `49d70214c8697936724f6717f5ad07a03aacf0ea`.
 
 ## Remaining acceptance and limits
 
-- Test Siteimprove's actual panel, login, analysis, and highlighting with a live
-  account. Browser tests stub the vendor overlay.
+- Real-service draft checks and highlighting have separate self-hosted evidence.
+  Published-page results, URL matching and recheck await the site's initial review.
+  Browser tests stub the vendor overlay.
 - Verify the customer's Cloud or self-hosted deployment, languages/site domains,
-  CSP/proxy, and upgraded database. Automated checks use Linux/Chromium and a
+  CSP/proxy, and upgraded database. Automated checks use Linux and three browsers on a
   disposable local CMS.
 - Fast navigation before an editor finishes rendering exposed a destroyed
   Umbraco workspace view in the fixture. The shipped view controller explicitly

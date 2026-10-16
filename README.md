@@ -22,6 +22,8 @@ acceptance checklist.
   [release acceptance](docs/VALIDATION.md): verified behavior and remaining checks.
 - [Marketplace listing](docs/MARKETPLACE.md): shared listing for Umbraco 13 and 17,
   package mapping and release checks.
+- [Release preparation](docs/RELEASING.md): verify the customer bundle, prepare a
+  prerelease, and track the remaining stable release gates.
 
 ## Install
 
@@ -121,13 +123,16 @@ Umbraco website previews.
 
 ```sh
 npm test
+python3 -m unittest discover -s tests/python -v
 dotnet test tests/Siteimprove.Umbraco17.Plugin.Tests.csproj -c Release
 dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
 bash scripts/verify-package.sh
 ```
 
 The GitHub validation workflow builds, tests, packs, and checks installation and
-published assets. It uploads the beta package as an artifact and does not publish
+published assets. After the browser matrix passes it creates and verifies a
+customer ZIP with checksums, provenance and the matching guides/release notes.
+It uploads the beta package and customer ZIP as artifacts and does not publish
 a NuGet package or create a release. See [docs/VALIDATION.md](docs/VALIDATION.md)
 for the acceptance checks needed before release.
 

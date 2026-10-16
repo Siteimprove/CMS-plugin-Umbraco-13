@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
+import { knownCmsError } from "../cms-errors.js";
 
 const API = "/umbraco/management/api/v1/";
 const OVERLAY = "https://cdn.siteimprove.net/cms/overlay-latest.js";
@@ -146,5 +147,6 @@ for (const enabled of [true, false]) test("new documents and nested document pic
             if (!enabled) expect(f.pluginRequests).toEqual([]);
             await testInfo.attach("workflow-console", { body: JSON.stringify({ errors: f.errors,
                 pluginRequests: f.pluginRequests, lastCommand: enabled ? await command() : null }, null, 2), contentType: "application/json" });
+            expect(f.errors.filter(error => !knownCmsError(error))).toEqual([]);
         }
     });

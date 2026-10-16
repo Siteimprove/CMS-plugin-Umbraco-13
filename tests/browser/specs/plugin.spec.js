@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { errorSignature, knownCmsError } from "../cms-errors.js";
 
 const API = "/umbraco/management/api/v1/";
 const OVERLAY = "https://cdn.siteimprove.net/cms/overlay-latest.js";
@@ -168,19 +169,6 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
     let home, first, second, draft, previewDraft, otherPreviewDraft, groups, writer;
     const savedDraftText = "Preview content from the latest saved draft";
     let baselineErrors = new Set();
-    const normalizeMessage = message => message.replace(/^(?:Error|TypeError): /, "");
-    const firstSourceFrame = error => error.stack?.split("\n").slice(1).find(line => line.trim())?.trim() || "";
-    const errorSignature = error => normalizeMessage(error.message) + "\n" + firstSourceFrame(error);
-
-    const knownCmsError = error =>
-            (["Tree context is not set", "Could not request children, repository is missing"].includes(normalizeMessage(error.message))
-                && (error.stack?.includes("/packages/core/tree-view-element-base-")
-                    || (!firstSourceFrame(error) && normalizeMessage(error.message) === "Could not request children, repository is missing")))
-            || (normalizeMessage(error.message) === "Missing repository for [object Object]"
-                && error.stack?.includes("/packages/media/media-collection.context-"))
-            || (error.message === "ResizeObserver loop completed with undelivered notifications." && !firstSourceFrame(error))
-            || (/^[a-zA-Z_$][\w$]*\.provideAt is not a function$/.test(normalizeMessage(error.message))
-                && (error.stack?.includes("/packages/core/constants-") || error.stack?.includes("/packages/core/router/index.js")));
 
     await test.step("anonymous requests cannot access plugin APIs", async () => {
         for (const endpoint of ["version", "public-url", "document/" + randomUUID() + "/url"]) {
