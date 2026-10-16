@@ -10,6 +10,7 @@ test("the observed Chromium, Firefox and WebKit disposed-view errors are classif
     for (const [message, frame] of [
         ["n.provideAt is not a function", "Object.setup (" + cms + "constants-BpvpzOly.js:124:77)"],
         ["t.provideAt is not a function", "render (" + cms + "router/index.js:792:16)"],
+        ["t.provideAt is not a function", "Object.setup (" + cms + "workspace/index.js:1012:78)"],
         [webkit, "render (" + cms + "router/index.js:792:26)"]
     ]) assert.equal(knownCmsError(error(message, frame)), true, message);
 });
@@ -18,6 +19,7 @@ test("the disposed-view diagnostic rejects plugin and third-party frames, includ
     for (const frame of [
         "restore (http://localhost:5019/App_Plugins/Siteimprove/assistant.js:1:1)",
         "restore (https://cdn.siteimprove.net/cms/overlay-latest.js:1:1)",
+        "setup (" + cms + "unrelated/index.js:1012:78)",
         "render (http://localhost:5019/unrelated/packages/core/router/index.js:792:26)"
     ]) {
         const value = error(webkit, frame);

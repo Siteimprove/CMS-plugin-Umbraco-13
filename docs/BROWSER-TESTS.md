@@ -32,6 +32,15 @@ no response, and the import error at 197178 ms. Setup now waits for the rendered
 news dashboard before creating fixtures and navigating. The error remains a
 failure; it was not added to the known-CMS classifier.
 
+The [following workflow](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38888304596)
+passed both picker workflows in all three browsers. Chromium's plugin-disabled
+rapid-navigation control exposed the same disposed-view failure at
+`workspace/index.js:1012`, in addition to the previously recorded router/constants
+call sites. The pinned [workspace route setup](https://github.com/umbraco/Umbraco-CMS/blob/release-17.7.1/src/Umbraco.Web.UI.Client/src/packages/core/workspace/components/workspace-editor/workspace-editor.element.ts#L155)
+calls `provideAt` on the view controller; [controller destruction](https://github.com/umbraco/Umbraco-CMS/blob/release-17.7.1/src/Umbraco.Web.UI.Client/src/packages/core/view/context/view.controller.ts#L364)
+sets that method to undefined. The classifier includes this confirmed first frame;
+other modules and later CMS callers remain rejected by regression tests.
+
 ## 15 October workflow follow-up
 
 `document-workflows.spec.js` adds native document creation and save, a document

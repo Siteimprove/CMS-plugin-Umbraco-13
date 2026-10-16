@@ -4,7 +4,7 @@ export const errorSignature = error => normalizeMessage(error.message) + "\n" + 
 
 // WebKit adds the failed expression to this source-confirmed CMS teardown error.
 const disposedViewMessage = /^([a-zA-Z_$][\w$]*)\.provideAt is not a function(?:\. \(In '\1\.provideAt\([a-zA-Z_$][\w$]*\)', '\1\.provideAt' is undefined\))?$/;
-const disposedViewFrame = /\/umbraco\/backoffice\/[^/]+\/packages\/core\/(?:constants-[\w-]+\.js|router\/index\.js):\d+:\d+\)?$/;
+const disposedViewFrame = /\/umbraco\/backoffice\/[^/]+\/packages\/core\/(?:constants-[\w-]+\.js|(?:router|workspace)\/index\.js):\d+:\d+\)?$/;
 
 export const knownCmsError = error =>
     (["Tree context is not set", "Could not request children, repository is missing"].includes(normalizeMessage(error.message))
