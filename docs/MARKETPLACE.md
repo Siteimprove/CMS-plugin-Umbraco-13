@@ -12,8 +12,7 @@ Its `VersionSpecificPackageIds` entry maps Umbraco 13 to
 package from importing v17's mapping as its own metadata.
 
 `umbraco-marketplace-readme.md` is shared by both package IDs and documents each
-package's installation and release status. Keep this text accurate while v17 is
-in customer testing.
+package's installation and release status. Keep this text aligned with the published release.
 
 Marketplace discovers these files at the NuGet package's project URL:
 `https://github.com/Siteimprove/CMS-plugin-Umbraco-13`. It reads the repository's
@@ -26,17 +25,16 @@ The v13 mapping does not establish compatibility with Umbraco 14–16.
 
 ## Release and consolidation
 
-The checked-in metadata is preparation for publication. A successful beta workflow
-does not publish NuGet packages or update the live Marketplace listing. Record
-the accepted package version and the validated listing URLs when these steps are
-completed; until then the v17 release remains a customer beta.
+The checked-in metadata prepares the **1.0.0 GA** listing. CI does not publish
+NuGet packages or update Marketplace. Record the package version and listing URLs
+when publication and synchronization have completed.
 
-1. Complete the stable release acceptance checks in [VALIDATION.md](VALIDATION.md).
-2. Merge the Marketplace metadata and shared README into the default branch.
+1. Follow [release preparation](RELEASING.md) to validate the final merged commit
+   and publish its verified package. Review the documented hosting/dependency limits.
+2. Confirm the Marketplace metadata and shared README are on the default branch.
    Preserve the v13 source and guide on `umbraco-13`.
-3. Publish the accepted v17 package to NuGet with the `umbraco-marketplace` tag.
-   Update the shared README with the published version, normal NuGet installation
-   command and final documentation links.
+3. Confirm the v17 NuGet package is listed with the `umbraco-marketplace` tag.
+   Check that the shared README links to the published version and current guides.
 4. Use the [Marketplace validator](https://marketplace.umbraco.com/validate) with
    `Siteimprove.Umbraco17.Plugin` and its JSON metadata. Check the resulting title,
    compatibility and version-specific installation instructions.

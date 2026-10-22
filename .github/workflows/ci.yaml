@@ -40,14 +40,14 @@ jobs:
         run: |
           export E2E_ADMIN_PASSWORD="$(node -e "process.stdout.write('E2e!' + require('node:crypto').randomBytes(24).toString('hex'))")"
           npm --prefix tests/browser test
-      - name: Create verified customer beta bundle
+      - name: Create verified customer release bundle
         env:
-          BETA_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: python3 scripts/create-beta-bundle.py
-      - name: Upload customer beta bundle
+          RELEASE_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 scripts/create-release-bundle.py
+      - name: Upload customer release bundle
         uses: actions/upload-artifact@v4
         with:
-          name: Siteimprove-Umbraco17-beta
+          name: Siteimprove-Umbraco17-release
           path: |
             artifacts/*.customer.zip
             artifacts/*.customer.zip.sha256
@@ -60,5 +60,4 @@ jobs:
           path: |
             tests/browser/test-results/
             tests/browser/playwright-report/
-# Customer prerelease publication and stable release acceptance remain separate.
-
+# Publication is manual; release the verified artifacts from the successful merged commit.

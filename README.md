@@ -1,42 +1,41 @@
 # Siteimprove Content Assistant for Umbraco 17
 
-This port targets Umbraco CMS 17.7.1 or later in the 17.x series and .NET 10.
-The same NuGet package is intended
-for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.8** is for customer
-acceptance testing. Stable release awaits
-the checks in [docs/VALIDATION.md](docs/VALIDATION.md) in both environments.
+Version **1.0.0** integrates Siteimprove Content Assistant with Umbraco CMS
+**17.7.1 or later in the 17.x series** on **.NET 10**. It provides published-page
+insights, full-page draft checks and highlighting inside the editing workflow.
+A valid Siteimprove account is required.
 
-Build beta.8 from this branch and follow the [installation guide](docs/INSTALLATION.md).
-See [beta.8 changes](docs/releases/1.0.0-beta.8.md). The package has not been published to NuGet.org.
+The same package can be deployed through Umbraco Cloud or a self-hosted build.
+Validation covers a self-hosted Linux site and Chromium, Firefox and WebKit;
+see [validation and known limits](docs/VALIDATION.md) for the tested scope.
+Read the [1.0.0 release notes](docs/releases/1.0.0.md).
 
 ## Documentation
 
-Start with the [customer beta notes](docs/BETA.md) for package contents and the
-acceptance checklist.
+See [package information](docs/DISTRIBUTION.md) for bundle contents and verification.
 
-- [Installation and upgrade](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/port/umbraco-17/docs/INSTALLATION.md): obtain the beta package,
+- [Installation and upgrade](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/master/docs/INSTALLATION.md): install the release package,
   install through NuGet, deploy on Cloud or self-hosted sites, and upgrade from v13.
-- [Usage, configuration, and troubleshooting](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/port/umbraco-17/docs/USAGE.md): editor workflows,
+- [Usage, configuration, and troubleshooting](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/master/docs/USAGE.md): editor workflows,
   **Settings → Siteimprove**, domain overrides, and common problems.
 - [Browser test results](docs/BROWSER-TESTS.md) and
   [release acceptance](docs/VALIDATION.md): verified behavior and remaining checks.
 - [Marketplace listing](docs/MARKETPLACE.md): shared listing for Umbraco 13 and 17,
   package mapping and release checks.
 - [Release preparation](docs/RELEASING.md): verify the customer bundle, prepare a
-  prerelease, and track the remaining stable release gates.
+  stable release, and publish the verified artifacts.
 
 ## Install
 
-Build the package, then install it in an Umbraco 17 site:
+Install the public release from NuGet.org:
 
 ```sh
-dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
-dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.8 --source /absolute/path/to/artifacts
+dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0
 ```
 
-The second command selects the local feed. Restore the site with its normal
-NuGet sources as well if Umbraco dependencies are not already cached.
-The package is not yet published to NuGet.org.
+Before public publication, or when using an internal feed, obtain the verified
+release bundle and follow the [installation guide](docs/INSTALLATION.md).
+Merging this repository does not publish the package automatically.
 
 Remove `Siteimprove.Umbraco13.Plugin` and stale `App_Plugins/Siteimprove` files
 before installing the new package. Rebuild and restart the site, then reload the
@@ -132,11 +131,10 @@ bash scripts/verify-package.sh
 The GitHub validation workflow builds, tests, packs, and checks installation and
 published assets. After the browser matrix passes it creates and verifies a
 customer ZIP with checksums, provenance and the matching guides/release notes.
-It uploads the beta package and customer ZIP as artifacts and does not publish
-a NuGet package or create a release. See [docs/VALIDATION.md](docs/VALIDATION.md)
-for the acceptance checks needed before release.
+It uploads the package and customer ZIP as artifacts. Follow
+[release preparation](docs/RELEASING.md) to publish the artifacts from a successful
+validation run on the merged commit.
 
 Chromium, Firefox and WebKit functionality tests also run against a real Umbraco installation in CI.
 See [docs/BROWSER-TESTS.md](docs/BROWSER-TESTS.md) for verified behavior, the
 Playwright report/trace, and local execution instructions.
-

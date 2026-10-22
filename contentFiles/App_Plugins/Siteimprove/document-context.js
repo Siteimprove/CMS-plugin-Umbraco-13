@@ -2,8 +2,8 @@ import { UmbContextBase } from "@umbraco-cms/backoffice/class-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { UMB_DOCUMENT_WORKSPACE_CONTEXT } from "@umbraco-cms/backoffice/document";
 import { observeMultiple } from "@umbraco-cms/backoffice/observable-api";
-import { SiteimproveApi } from "./api.js?v=1.0.0-beta.8";
-import { assistant } from "./assistant.js?v=1.0.0-beta.8";
+import { SiteimproveApi } from "./api.js?v=1.0.0";
+import { assistant } from "./assistant.js?v=1.0.0";
 
 export class SiteimproveDocumentContext extends UmbContextBase {
     #api;

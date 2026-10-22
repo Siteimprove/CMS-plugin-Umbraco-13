@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "@umbraco-cms/backoffice/external/lit";
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
-import { SiteimproveApi } from "./api.js?v=1.0.0-beta.8";
+import { SiteimproveApi } from "./api.js?v=1.0.0";
 
 export class SiteimproveSettingsElement extends UmbElementMixin(LitElement) {
     static properties = {

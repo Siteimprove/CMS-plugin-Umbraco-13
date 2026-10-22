@@ -1,9 +1,8 @@
 # Installation and upgrade
 
 This guide installs `Siteimprove.Umbraco17.Plugin` into an existing Umbraco site.
-The current package is `1.0.0-beta.8` and has not been published to NuGet.org.
-Cloud and self-hosted sites use the same package. Actual Cloud/Windows deployment
-and live Siteimprove acceptance remain pending; see [validation](VALIDATION.md).
+The release version is **1.0.0**. Cloud and self-hosted sites use the same package.
+See [validation and known limits](VALIDATION.md) for tested environments.
 
 ## Requirements
 
@@ -18,70 +17,63 @@ The .NET 10 SDK is needed on build machines and for local development.
 Self-hosted servers need the appropriate .NET 10 runtime/hosting setup unless
 the application is published self-contained. No plugin npm build is required.
 
-## 1. Obtain the beta package
+## 1. Obtain and install the release
 
-Use the beta.8 customer ZIP supplied by Siteimprove or the `Siteimprove-Umbraco17-beta`
-artifact from a successful validation run for the intended source commit. Follow
-the bundle's `START-HERE.md` and verify its checksums before installation. Historical
-beta artifacts do not contain all current fixes. See [release preparation](RELEASING.md)
-for provenance and verification commands.
+After publication to NuGet.org, run these commands from the site repository root,
+replacing the project path with your Umbraco web project:
 
-Check out this repository's `port/umbraco-17` branch and run
-from its root:
+```sh
+dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0
+dotnet restore src/YourSite/YourSite.csproj
+dotnet build src/YourSite/YourSite.csproj -c Release
+```
+
+Keep the exact package used for a deployment so it can be reproduced or restored.
+
+### Before publication or with an internal feed
+
+Use the `Siteimprove-Umbraco17-release` artifact from a successful validation run
+for the intended source commit. It contains
+`Siteimprove.Umbraco17.Plugin.1.0.0.customer.zip` and its checksum. Verify the bundle
+using [release preparation](RELEASING.md), then extract the `.nupkg`.
+A locally built package is also suitable for development:
 
 ```sh
 dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
 ```
 
-Use the resulting `.nupkg` from `artifacts`. Keep the exact package used for a
-deployment so it can be reproduced or restored. A local build does not establish
-that the browser matrix or customer acceptance has passed.
+A local build does not establish that the browser matrix or customer acceptance
+has passed. Public releases use the verified CI artifact.
 
-## 2. Make the package available during restore
-
-For a local trial, place the `.nupkg` in `packages/siteimprove` beneath your
-**site repository's root**. Create a root `NuGet.config`, or add the local source
-to the existing file. Preserve any other sources and package source mappings
-your site uses; this is an example for a site using NuGet.org:
+Place the `.nupkg` in `packages/siteimprove` beneath your **site repository's root**.
+Add that folder to the site's existing `NuGet.config`, preserving other sources
+and package source mappings. For example:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <packageSources>
-    <add key="siteimprove-preview" value="./packages/siteimprove" />
+    <add key="siteimprove" value="./packages/siteimprove" />
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
   </packageSources>
 </configuration>
 ```
 
-For Cloud or another remote build, that source must also exist on the build
-machine. Either include the beta package folder in the site repository or use
-an internal NuGet feed that your deployment can restore from. Check your site's
-ignore rules: `packages/` and `*.nupkg` are often ignored. A workstation's absolute
-path will not work on a remote build machine. Configure feed credentials through
-your deployment's supported secret mechanism.
-
-## 3. Install in the web project
-
-Run these commands from the site repository root, replacing the project path
-with the actual Umbraco web project:
-
-```sh
-dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.8
-dotnet restore src/YourSite/YourSite.csproj
-dotnet build src/YourSite/YourSite.csproj -c Release
-```
+Run the install/restore/build commands above. For a remote build, include that
+package folder in the site repository or use an internal feed accessible to the
+build machine. A workstation's absolute path will not work remotely. Configure
+feed credentials through the deployment's supported secret mechanism.
 
 The package registers its services and preview middleware automatically through
 an Umbraco composer. You do not need to change `Program.cs`. Its NuGet targets
 copy the browser files to `App_Plugins/Siteimprove` during builds and publication.
 
-## 4. Deploy
+## 2. Deploy
 
 ### Umbraco Cloud
 
 Install and try the package in the site's local development checkout. Commit the
-project's package reference, NuGet configuration, and any repository-local beta
+project's package reference, NuGet configuration, and any repository-local
 feed needed for restore. Deploy to a Cloud development environment through the
 site's normal Git/build process and complete the checks below before promoting.
 
@@ -104,7 +96,7 @@ the application. Configure the domain mapping for the target environment.
 Siteimprove's live crawler also needs access to the public website; installation
 alone does not enable crawling of a private network site.
 
-## 5. Configure and verify
+## 3. Configure and verify
 
 1. Reload the backoffice and sign in as an administrator.
 2. Open **Settings → Siteimprove**. It is a Settings tab, not a top-level section.

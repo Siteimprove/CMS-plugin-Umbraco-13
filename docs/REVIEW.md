@@ -1,4 +1,4 @@
-# Beta quality review
+# Code quality review
 
 Reviewed the backend API and preview middleware, browser modules, NuGet asset
 targets, regression/browser tests, CI, customer bundle, and installation/usage
@@ -31,21 +31,24 @@ would add maintenance work without addressing the findings above. The shared
 version file removes duplication where it affects packaging; the plain modules
 continue to use Umbraco's import map.
 
-## Current beta.6 validation
+## GA preparation review, 22 October 2026
 
-The candidate includes 53 JavaScript and 35 backend regressions, clean-consumer
-package checks, three-browser lifecycle coverage and nested document/picker
-restoration flows. The [first beta.6 workflow](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/38725427278)
-passed the build/package checks and 17 of 18 browser cases. WebKit's plugin-disabled
-control failed on a confirmed native workspace error with WebKit's appended
-expression explanation. The classifier correction and release bundle verification
-changes require a complete successful workflow before distribution; a bundle's
-`release.json` identifies the final build and workflow to check.
-See [browser evidence](BROWSER-TESTS.md).
+The final review of beta.8 found no new functional blocker. The project owner
+confirmed successful testing and selected 1.0.0 GA. Release preparation adds
+stable version/channel handling to the verified bundle tools, updates package
+and cache versions together, and replaces beta distribution instructions with
+stable publication steps. Existing beta bundles remain verifiable.
 
-Bundle creation verifies that packaged assets, README and build targets match
-source, that the NuGet repository commit matches the bundle build commit, and
-that required guides, release notes and checksums are complete.
+The accepted beta.8 workflow passed 57 JavaScript, 38 backend, eight bundle and
+18 browser tests. GA packaging adds stable bundle regressions and requires a new
+complete successful run for the final source commit. Use `release.json` from the
+release artifact to identify that exact run. The full merged commit is the source
+for NuGet and GitHub release artifacts; a green PR alone does not publish them.
+
+The review's two release findings were stable versions being rejected by the
+bundle scripts and customer documentation still describing beta.8. No runtime
+refactor or new feature is part of the GA preparation. Known CMS advisories,
+native errors and hosting coverage remain in [VALIDATION.md](VALIDATION.md).
 
 ## Historical beta.2 validation
 
@@ -74,6 +77,6 @@ tested source `49d70214c8697936724f6717f5ad07a03aacf0ea`.
 - Review the full CMS host's inherited dependency audit warnings and the patched
   releases available to the customer's application before production deployment.
 
-See [browser evidence](BROWSER-TESTS.md), [beta acceptance](BETA.md), and the
+See [browser evidence](BROWSER-TESTS.md), [package information](DISTRIBUTION.md), and the
 [release checklist](VALIDATION.md). No merge, public NuGet publication, or
 production deployment is part of this review.

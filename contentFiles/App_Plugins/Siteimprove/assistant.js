@@ -1,4 +1,4 @@
-import { setDocumentVisibility } from "./visibility.js?v=1.0.0-beta.8";
+import { setDocumentVisibility } from "./visibility.js?v=1.0.0";
 
 const OVERLAY_URL = "https://cdn.siteimprove.net/cms/overlay-latest.js";
 

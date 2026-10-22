@@ -1,5 +1,18 @@
 # Browser functionality tests
 
+## GA validation
+
+The accepted beta.8 workflow passed all 18 browser cases across Chromium, Firefox
+and WebKit, plus 57 JavaScript, 38 backend and eight bundle tests:
+https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/39762374436
+
+The 1.0.0 release repeats this matrix with stable packaging. Its final source and
+workflow are recorded in the artifact’s `release.json`. The real-service beta.8
+check completed with zero false policy issues, and View on platform opened the
+expected inspector URL in a new Chrome tab. See [validation](VALIDATION.md) for
+the remaining service and hosting boundaries. The sections below preserve the
+regression history; they do not replace the final release workflow result.
+
 ## Beta 8 upgrades with cached assets
 
 Preview scripts use the plugin assembly's package version in their URL. Local
@@ -25,8 +38,8 @@ the native page iframe did not allow popups. Neither symptom was fixed by the
 beta.6 preview script, which was identical to the deployed script.
 
 JavaScript regressions cover the host selection, document/highlight targets,
-overlay reuse and teardown ordering. Browser and real-service results must be
-recorded for the accepted beta.7 source and deployment.
+overlay reuse and teardown ordering. The accepted beta.8 run and deployment above
+verify these regressions.
 
 ## Beta 6 nested workspace restoration
 
