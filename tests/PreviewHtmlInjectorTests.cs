@@ -10,7 +10,7 @@ public class PreviewHtmlInjectorTests
     {
         var result = PreviewHtmlInjector.Inject("<html><BODY>Hello</BODY></html>", "/site",
             "https://example.com/a?x=1&y=2", "17.0.0");
-        Assert.Contains("src=\"/site/App_Plugins/Siteimprove/preview.js\"", result);
+        Assert.Contains("src=\"/site/App_Plugins/Siteimprove/preview.js?v=1.0.0-beta.8\"", result);
         Assert.Contains("data-page-url=\"https://example.com/a?x=1&amp;y=2\"", result);
         Assert.EndsWith("</script></BODY></html>", result);
     }

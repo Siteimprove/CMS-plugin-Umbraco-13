@@ -58,6 +58,10 @@ const stub = `
 `;
 
 async function mockOverlay(context) {
+    // Old unversioned URLs can remain fresh in an existing editor's browser cache.
+    await context.route(/\/App_Plugins\/Siteimprove\/(?:api|assistant|visibility|preview)\.js$/, route => route.fulfill({
+        status: 200, contentType: "text/javascript", body: 'throw new Error("Stale plugin asset loaded");'
+    }));
     await context.route(OVERLAY, route => route.fulfill({ status: 200, contentType: "text/javascript", body: stub }));
     await context.route("https://platform.example.test/preview-issue", route => route.fulfill({
         status: 200, contentType: "text/html", body: "<h1>Platform issue</h1>"

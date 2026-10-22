@@ -1,5 +1,13 @@
 # Browser functionality tests
 
+## Beta 8 upgrades with cached assets
+
+Preview scripts use the plugin assembly's package version in their URL. Local
+module imports use the matching package version, with a JavaScript regression
+preventing drift from the manifest. The browser lifecycle test serves unusable
+old scripts at unversioned helper and preview URLs; upgraded editors and previews
+must still load and complete the same scan, highlight, navigation and popup checks.
+
 ## Beta 7 preview content and platform links
 
 The rendered preview initializes one assistant in its native `umb-preview`

@@ -1,7 +1,7 @@
 # Installation and upgrade
 
 This guide installs `Siteimprove.Umbraco17.Plugin` into an existing Umbraco site.
-The current package is `1.0.0-beta.7` and has not been published to NuGet.org.
+The current package is `1.0.0-beta.8` and has not been published to NuGet.org.
 Cloud and self-hosted sites use the same package. Actual Cloud/Windows deployment
 and live Siteimprove acceptance remain pending; see [validation](VALIDATION.md).
 
@@ -67,7 +67,7 @@ Run these commands from the site repository root, replacing the project path
 with the actual Umbraco web project:
 
 ```sh
-dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.7
+dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.8
 dotnet restore src/YourSite/YourSite.csproj
 dotnet build src/YourSite/YourSite.csproj -c Release
 ```

@@ -1,9 +1,9 @@
 import { UmbControllerBase } from "@umbraco-cms/backoffice/class-api";
 import { UMB_MODAL_MANAGER_CONTEXT } from "@umbraco-cms/backoffice/modal";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
-import { SiteimproveApi } from "./api.js";
-import { assistant, loadOverlay } from "./assistant.js";
-import { initializeVisibility, setWorkspaceModalVisibility } from "./visibility.js";
+import { SiteimproveApi } from "./api.js?v=1.0.0-beta.8";
+import { assistant, loadOverlay } from "./assistant.js?v=1.0.0-beta.8";
+import { initializeVisibility, setWorkspaceModalVisibility } from "./visibility.js?v=1.0.0-beta.8";
 
 let controller;
 export function onInit(host) {
