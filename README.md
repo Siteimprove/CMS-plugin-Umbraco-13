@@ -6,8 +6,8 @@ for Umbraco Cloud and self-hosted Umbraco. Version **1.0.0-beta.8** is for custo
 acceptance testing. Stable release awaits
 the checks in [docs/VALIDATION.md](docs/VALIDATION.md) in both environments.
 
-Build beta.7 from this branch and follow the [installation guide](docs/INSTALLATION.md).
-See [beta.7 changes](docs/releases/1.0.0-beta.8.md). The package has not been published to NuGet.org.
+Build beta.8 from this branch and follow the [installation guide](docs/INSTALLATION.md).
+See [beta.8 changes](docs/releases/1.0.0-beta.8.md). The package has not been published to NuGet.org.
 
 ## Documentation
 

@@ -20,7 +20,7 @@ the application is published self-contained. No plugin npm build is required.
 
 ## 1. Obtain the beta package
 
-Use the beta.7 customer ZIP supplied by Siteimprove or the `Siteimprove-Umbraco17-beta`
+Use the beta.8 customer ZIP supplied by Siteimprove or the `Siteimprove-Umbraco17-beta`
 artifact from a successful validation run for the intended source commit. Follow
 the bundle's `START-HERE.md` and verify its checksums before installation. Historical
 beta artifacts do not contain all current fixes. See [release preparation](RELEASING.md)

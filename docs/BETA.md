@@ -8,7 +8,7 @@ Beta.6 restores the parent document's launcher and URL after closing nested
 document editors, retains parent culture updates, and rejects closed or unauthorized
 contexts. It includes beta.5's isolated draft results, published-route preview URL
 resolution, and visibility and authentication fixes.
-See [beta.7 changes](releases/1.0.0-beta.8.md) and [review findings](REVIEW.md).
+See [beta.8 changes](releases/1.0.0-beta.8.md) and [review findings](REVIEW.md).
 Opening or reloading an unpublished preview starts with no prior results. Run a
 content check to analyze that rendered draft; Recheck draft and highlighting remain
 available while the preview is open.
