@@ -1,27 +1,140 @@
-# Siteimprove Content Assistant plugin for Umbraco
+# Siteimprove Content Assistant for Umbraco 17
+
+Version **1.0.0** integrates Siteimprove Content Assistant with Umbraco CMS
+**17.7.1 or later in the 17.x series** on **.NET 10**. It provides published-page
+insights, full-page draft checks and highlighting inside the editing workflow.
+A valid Siteimprove account is required.
+
+The same package can be deployed through Umbraco Cloud or a self-hosted build.
+Validation covers a self-hosted Linux site and Chromium, Firefox and WebKit;
+see [validation and known limits](docs/VALIDATION.md) for the tested scope.
+Read the [1.0.0 release notes](docs/releases/1.0.0.md).
+
+## Documentation
+
+See [package information](docs/DISTRIBUTION.md) for bundle contents and verification.
+
+- [Installation and upgrade](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/master/docs/INSTALLATION.md): install the release package,
+  install through NuGet, deploy on Cloud or self-hosted sites, and upgrade from v13.
+- [Usage, configuration, and troubleshooting](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/blob/master/docs/USAGE.md): editor workflows,
+  **Settings → Siteimprove**, domain overrides, and common problems.
+- [Browser test results](docs/BROWSER-TESTS.md) and
+  [release acceptance](docs/VALIDATION.md): verified behavior and remaining checks.
+- [Marketplace listing](docs/MARKETPLACE.md): shared listing for Umbraco 13 and 17,
+  package mapping and release checks.
+- [Release preparation](docs/RELEASING.md): verify the customer bundle, prepare a
+  stable release, and publish the verified artifacts.
 
 ## Install
 
-Install the NuGet package in your Umbraco project. The NuGet package is automatically generated on the build of this project.
+Install the public release from NuGet.org:
 
-## Configuration in Umbraco
+```sh
+dotnet add YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0
+```
 
-There's a Siteimprove section in the main menu, added by this plugin, where you can define a public URL. To display this section you will need allow it, going to the `Users` tab, selecting the option to edit section, and then adding `Siteimprove`. After that, you will need to logout and login again, and then you will be able to see the new section.
+Before public publication, or when using an internal feed, obtain the verified
+release bundle and follow the [installation guide](docs/INSTALLATION.md).
+Merging this repository does not publish the package automatically.
 
-The purpose of this section is to define a new domain, when necessary, to replace the Umbraco domain. Then the URL with the new domain will be the one that will be passed to the `Siteimprove Content Assistant`. It can also be used for testing purpose.
+Remove `Siteimprove.Umbraco13.Plugin` and stale `App_Plugins/Siteimprove` files
+before installing the new package. Rebuild and restart the site, then reload the
+backoffice. NuGet build targets copy the new files into `App_Plugins/Siteimprove`
+for development and include them in published output. No frontend compilation
+or npm dependencies are required; the modules use Umbraco's backoffice import map.
 
-For example, if you defined the public URL value as https://yourdomain and the URL of content page you are accessing now is https://umbracodomain/about/, the final URL that will be passed to the `input` function is https://yourdomain/about/.
+This upgrades the plugin, not the site's CMS or database. Follow Umbraco's supported
+upgrade process separately. The old implementation is retained on `umbraco-13`.
 
-## Run on local machine
+## Use and configuration
 
-Reference class library to Umbraco project, or install the NuGet package that is generated when building this project.
+A valid Siteimprove account is required. The Content Assistant loads after
+backoffice authentication. Selecting a published document sends its public URL
+to the assistant. New/unpublished documents clear the previous live-page context.
+Saving or publishing refreshes that URL; leaving the document clears it.
+The launcher and panel are visible only in document editing and rendered preview,
+including drafts. Settings, dashboards and other sections hide them.
+Preview uses the published route for live insights; never-published content has
+no live URL and still supports full-page prepublish checks.
 
-## How the plugin works?
+For multilingual content, the selected culture is passed to Umbraco's URL provider.
+In split view the single assistant uses the first (left-hand) culture.
 
-As soon as you login to Umbraco, you will be able to see the `Siteimprove Content Assistant` icon on the right (or left, depending on your settings).
+Administrators with access to **Settings** can open its **Siteimprove** tab and
+set a public domain there. Use an HTTP or HTTPS origin such as
+`https://www.example.com`; leave it blank to retain Umbraco's published URLs.
+The scheme, hostname, and port are replaced while the page path is preserved.
+The original `SiteimprovePublicUrl` database key is retained.
 
-If you click on it you will open the side panel, but will only be able to see it's default page. To see some data, you will need to select some content.
+Environment configuration takes precedence over the database value:
 
-The URL of the selected content will be sent to the `Siteimprove Content Assistant`, and if the selected site/page is connected with Siteimprove environment, then you will be able to see some data related to that specific page on the `Live` tab.
+```json
+{
+  "Siteimprove": {
+    "PublicUrl": "https://www.example.com",
+    "EnablePreviewChecks": true
+  }
+}
+```
 
-You can also go the the preview of a specific page and then you will be able to run a prepublish check.
+Omit `PublicUrl` to use the database value. Set it to `""` to force unmodified
+Umbraco URLs for that environment. When configured, the dashboard displays a
+read-only value. Settings endpoints require administrator access; document URL
+endpoints require backoffice authentication, access to the document tree, and
+browse permission for the requested document.
+
+### Umbraco Cloud
+
+Install the package in the Cloud site's project and deploy through its normal
+Git/build process. Set domain overrides per environment using configuration
+(for example `Siteimprove__PublicUrl` where environment-variable configuration
+is available). Confirm whether each environment should map to the live domain;
+a development preview's prepublish check still examines the preview's rendered HTML.
+
+### Self-hosted / on-premises
+
+Install and publish the same package with the application. Ensure editors'
+browsers can access Siteimprove's CDN and account services. Siteimprove's live
+crawling also needs access to the published site; private-site crawling needs
+a separately supported Siteimprove setup.
+
+Restrictive Content Security Policies must allow the plugin's same-origin script,
+Siteimprove's overlay script at `https://cdn.siteimprove.net`, and the services
+required by your Siteimprove account. The plugin does not relax CSP headers.
+
+## Preview checks
+
+Use Umbraco's **Save and preview** action. The assistant is injected into rendered
+HTML only when Umbraco verifies the preview session and the routed request is in
+preview mode. It supports Umbraco 17's separate preview window, without assuming
+an iframe, a referrer, or an integer document ID.
+
+The prepublish callback returns the rendered document and supports highlighting.
+An unpublished page can be checked even when it has no public URL.
+Ordinary public responses are untouched. Non-HTML, compressed, non-UTF-8, and
+non-success responses are passed through.
+
+Headless/external preview providers render outside this Umbraco application and
+need their own Siteimprove integration. This middleware covers server-rendered
+Umbraco website previews.
+
+## Development and validation
+
+```sh
+npm test
+python3 -m unittest discover -s tests/python -v
+dotnet test tests/Siteimprove.Umbraco17.Plugin.Tests.csproj -c Release
+dotnet pack Siteimprove.Umbraco17.Plugin.csproj -c Release -o artifacts
+bash scripts/verify-package.sh
+```
+
+The GitHub validation workflow builds, tests, packs, and checks installation and
+published assets. After the browser matrix passes it creates and verifies a
+customer ZIP with checksums, provenance and the matching guides/release notes.
+It uploads the package and customer ZIP as artifacts. Follow
+[release preparation](docs/RELEASING.md) to publish the artifacts from a successful
+validation run on the merged commit.
+
+Chromium, Firefox and WebKit functionality tests also run against a real Umbraco installation in CI.
+See [docs/BROWSER-TESTS.md](docs/BROWSER-TESTS.md) for verified behavior, the
+Playwright report/trace, and local execution instructions.

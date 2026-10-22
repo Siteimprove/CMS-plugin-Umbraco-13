@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Version>$(SiteimprovePackageVersion)</Version>
+    <Description>Siteimprove Content Assistant for Umbraco 17 on Cloud and self-hosted sites.</Description>
+    <Product>Siteimprove Content Assistant</Product>
+    <PackageId>Siteimprove.Umbraco17.Plugin</PackageId>
+    <PackageTags>Siteimprove umbraco-v17 Umbraco Plugin umbraco-marketplace</PackageTags>
+    <Copyright>Copyright (c) Siteimprove A/S</Copyright>
+    <PackageProjectUrl>https://github.com/Siteimprove/CMS-plugin-Umbraco-13</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Siteimprove/CMS-plugin-Umbraco-13</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Umbraco.Cms.Api.Management" Version="[17.7.1,18.0.0)" />
+    <PackageReference Include="Umbraco.Cms.Web.Website" Version="[17.7.1,18.0.0)" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.13" />
+    <Compile Remove="tests/**" />
+    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Remove="contentFiles/App_Plugins/Siteimprove/**/*" />
+    <Content Include="contentFiles/App_Plugins/Siteimprove/**/*" Pack="true"
+             PackagePath="contentFiles/any/any/App_Plugins/Siteimprove/%(RecursiveDir)%(Filename)%(Extension)"
+             BuildAction="None" />
+    <None Update="buildTransitive/Siteimprove.Umbraco17.Plugin.targets" Pack="true"
+          PackagePath="buildTransitive/Siteimprove.Umbraco17.Plugin.targets" />
+  </ItemGroup>
+</Project>

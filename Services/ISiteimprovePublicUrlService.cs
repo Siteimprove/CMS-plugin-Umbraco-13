@@ -1,9 +1,10 @@
-﻿namespace Siteimprove.Umbraco13.Plugin.Services;
+namespace Siteimprove.Umbraco17.Plugin.Services;
 
 public interface ISiteimprovePublicUrlService
 {
-	void Set(string row);
-	string? Get();
-	string GetPageUrlByPageId(int pageId);
-	string GetPageUrlByPath(string path);
+    string? Get();
+    bool IsConfigured { get; }
+    void Set(string publicUrl);
+    Task<string?> GetPageUrlAsync(Guid key, string? culture = null);
 }
+

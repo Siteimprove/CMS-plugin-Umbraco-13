@@ -1,0 +1,44 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-package-schema.json",
+  "name": "Siteimprove Content Assistant",
+  "version": "1.0.0",
+  "extensions": [
+    {
+      "type": "backofficeEntryPoint",
+      "alias": "Siteimprove.EntryPoint",
+      "name": "Siteimprove Content Assistant",
+      "js": "/App_Plugins/Siteimprove/entrypoint.js"
+    },
+    {
+      "type": "workspaceContext",
+      "alias": "Siteimprove.DocumentContext",
+      "name": "Siteimprove document URL synchronization",
+      "api": "/App_Plugins/Siteimprove/document-context.js",
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        }
+      ]
+    },
+    {
+      "type": "dashboard",
+      "alias": "Siteimprove.PublicUrlDashboard",
+      "name": "Siteimprove public URL",
+      "element": "/App_Plugins/Siteimprove/settings.element.js",
+      "meta": {
+        "label": "Siteimprove",
+        "pathname": "siteimprove"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionAlias",
+          "match": "Umb.Section.Settings"
+        },
+        {
+          "alias": "Umb.Condition.CurrentUser.IsAdmin"
+        }
+      ]
+    }
+  ]
+}
