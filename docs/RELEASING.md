@@ -62,6 +62,10 @@ bundles remain verifiable.
 dotnet nuget push release-1.0.0/contents/Siteimprove.Umbraco17.Plugin.1.0.0.nupkg --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
 ```
 
+   Alternatively, sign in to [NuGet.org](https://www.nuget.org/packages/manage/upload),
+   select **Upload**, choose that same `.nupkg`, review its metadata and submit.
+   This option does not require a local .NET SDK or an API key.
+
 3. Confirm NuGet lists stable `1.0.0` and a clean Umbraco 17 project can restore
    it from NuGet.org. NuGet processing/indexing can take time. If the package
    already exists, inspect its identity and checksum; do not overwrite or silently
@@ -78,7 +82,8 @@ or recreate the old repository; GitHub's rename redirects preserve existing link
 ## Future versions
 
 Update `Directory.Build.props`, the backoffice manifest and all versioned relative
-JavaScript imports together. Update guide versions/links and add matching release
+JavaScript imports together. Update the preview injector test's expected asset
+version, guide versions/links and add matching release
 notes, then run the full
 validation workflow. The bundle tools accept stable `X.Y.Z` and beta
 `X.Y.Z-beta.N` versions and record their channel. Any change to code or packaging
