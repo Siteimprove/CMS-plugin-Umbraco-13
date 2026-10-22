@@ -1,4 +1,4 @@
-# Customer beta: 1.0.0-beta.6
+# Customer beta: 1.0.0-beta.7
 
 This beta ports Siteimprove Content Assistant to **Umbraco 17.7.1+ (17.x)** on
 **.NET 10**, for customer acceptance testing on Umbraco Cloud or self-hosted sites.
@@ -8,7 +8,7 @@ Beta.6 restores the parent document's launcher and URL after closing nested
 document editors, retains parent culture updates, and rejects closed or unauthorized
 contexts. It includes beta.5's isolated draft results, published-route preview URL
 resolution, and visibility and authentication fixes.
-See [beta.6 changes](releases/1.0.0-beta.6.md) and [review findings](REVIEW.md).
+See [beta.7 changes](releases/1.0.0-beta.7.md) and [review findings](REVIEW.md).
 Opening or reloading an unpublished preview starts with no prior results. Run a
 content check to analyze that rendered draft; Recheck draft and highlighting remain
 available while the preview is open.
@@ -20,7 +20,7 @@ the v13 database setting. Installing it does not upgrade the CMS itself.
 
 ## Bundle contents
 
-- `Siteimprove.Umbraco17.Plugin.1.0.0-beta.6.nupkg`: installable NuGet package.
+- `Siteimprove.Umbraco17.Plugin.1.0.0-beta.7.nupkg`: installable NuGet package.
 - `START-HERE.md`, `README.md`, and `docs/`: installation, usage, beta notes,
   release notes, automated-test evidence, acceptance and release guidance.
 - `release.json`: version, source commit, build commit, package checksum, and
@@ -35,7 +35,7 @@ in `release.json`; confirm that it completed successfully before distribution.
 
 For an extracted bundle on Linux/macOS with `sha256sum`, run
 `sha256sum --check SHA256SUMS`. On PowerShell, use
-`Get-FileHash ./Siteimprove.Umbraco17.Plugin.1.0.0-beta.6.nupkg -Algorithm SHA256`
+`Get-FileHash ./Siteimprove.Umbraco17.Plugin.1.0.0-beta.7.nupkg -Algorithm SHA256`
 and compare the hash with `SHA256SUMS` or `release.json`.
 The source repository also provides a [complete bundle verifier](RELEASING.md),
 including release provenance checks.
@@ -46,7 +46,7 @@ Follow [installation and upgrade](INSTALLATION.md) to configure a local or
 internal NuGet source, then add the package to the Umbraco web project:
 
 ```sh
-dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.6
+dotnet add src/YourSite/YourSite.csproj package Siteimprove.Umbraco17.Plugin --version 1.0.0-beta.7
 ```
 
 Run this from the site repository root after configuring the source. Replace

@@ -21,6 +21,13 @@ const stub = `
     panel.style.cssText = "position:fixed;right:0;top:60px;pointer-events:none";
     panel.textContent = "Siteimprove test panel";
     document.body.appendChild(panel);
+    const platformLink = document.createElement("a");
+    platformLink.textContent = "View on platform";
+    platformLink.href = "https://platform.example.test/preview-issue";
+    platformLink.target = "_blank";
+    platformLink.rel = "noopener";
+    platformLink.style.pointerEvents = "auto";
+    panel.appendChild(platformLink);
     let session;
     const resultKey = () => "__siDraftResult:" + (session || "shared");
     localStorage.setItem("__siDraftResult:shared", "Cached result from another draft");
@@ -31,6 +38,10 @@ const stub = `
             window.__siDraftResult = localStorage.getItem(resultKey());
         }
         if (command[0] === "registerPrepublishCallback") {
+            if (typeof command[1] !== "function") {
+                delete window.__siCallbacks.registerPrepublishCallback;
+                return;
+            }
             window.__siCallbacks[command[0]] = () => {
                 const result = command[1]();
                 localStorage.setItem(resultKey(), result[0].title);
@@ -39,7 +50,7 @@ const stub = `
             };
         } else if (typeof command[1] === "function") window.__siCallbacks[command[0]] = command[1];
         window.__siCommands.push(command.map(value =>
-            typeof value === "function" ? "[callback]" : value === document ? "[document]" : value));
+            typeof value === "function" ? "[callback]" : value?.nodeType === 9 ? "[document]" : value));
     }
     window._si = { push: capture };
     queue.forEach(capture);
@@ -48,6 +59,9 @@ const stub = `
 
 async function mockOverlay(context) {
     await context.route(OVERLAY, route => route.fulfill({ status: 200, contentType: "text/javascript", body: stub }));
+    await context.route("https://platform.example.test/preview-issue", route => route.fulfill({
+        status: 200, contentType: "text/html", body: "<h1>Platform issue</h1>"
+    }));
 }
 async function login(page, email = "admin@example.test") {
     await page.goto("/umbraco/");
@@ -329,13 +343,16 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
             await page.getByTestId("workspace-action:Umb.WorkspaceAction.Document.SaveAndPreview").click();
             const popup = await popupPromise;
             const frame = await previewFrame(popup);
-            expect(await popup.evaluate(() => window.__siOverlayLoads || 0)).toBe(0);
-            await expect.poll(() => frame.evaluate(() => window.__siOverlayLoads)).toBe(1);
-            await expect(frame.locator(".si-toggle-container")).toBeVisible();
+            await expect.poll(() => popup.evaluate(() => window.__siOverlayLoads)).toBe(1);
+            expect(await frame.evaluate(() => window.__siOverlayLoads || 0)).toBe(0);
+            await expect(popup.locator(".si-toggle-container")).toBeVisible();
+            await expect(frame.locator(".si-toggle-container, .si-iframe-container")).toHaveCount(0);
+            const sandbox = await popup.locator('iframe[title="Page preview"]').getAttribute("sandbox");
+            expect(sandbox).toBe("allow-scripts allow-same-origin allow-forms");
             await expect(frame.locator("script[data-siteimprove-preview]")).toHaveAttribute("data-page-url",
                 name === "published" ? PUBLIC_ORIGIN + "/first-page/" : "");
             const session = await frame.locator("script[data-siteimprove-preview]").getAttribute("data-preview-session");
-            const commands = await frame.evaluate(() => window.__siCommands);
+            const commands = await popup.evaluate(() => window.__siCommands);
             if (name === "published") {
                 expect(session).toBe("");
                 expect(commands[0][1]).toBeNull();
@@ -345,33 +362,39 @@ test("real Umbraco backoffice and preview lifecycle", async ({ page, context, re
                 draftSessions.add(session);
                 expect(commands[0]).toEqual(["setSession", session, null, "Umbraco 17.7.1"]);
                 expect(commands[1]).toEqual(["clear"]);
-                expect(await frame.evaluate(() => window.__siDraftResult)).toBeNull();
+                expect(await popup.evaluate(() => window.__siDraftResult)).toBeNull();
             }
             if (name === "published") {
                 await expect(frame.getByRole("heading", { name: "Renamed First Page", exact: true })).toBeVisible();
                 await expect(frame.locator(".content")).toHaveText(savedDraftText);
             }
             else
-                expect(await frame.evaluate(() => window.__siCommands.some(c => c[0] === "input"))).toBe(false);
-            await expect.poll(() => frame.evaluate(() => typeof window.__siCallbacks?.registerPrepublishCallback)).toBe("function");
+                expect(await popup.evaluate(() => window.__siCommands.some(c => c[0] === "input"))).toBe(false);
+            await expect.poll(() => popup.evaluate(() => typeof window.__siCallbacks?.registerPrepublishCallback)).toBe("function");
             const check = await frame.evaluate(() => {
-                const result = window.__siCallbacks.registerPrepublishCallback();
-                window.__siCallbacks.onHighlight({ selector: ".content" });
+                const result = window.parent.__siCallbacks.registerPrepublishCallback();
+                window.parent.__siCallbacks.onHighlight({ selector: ".content" });
                 return {
                     usesRenderedDocument: result[0] === document, label: result[2],
-                    highlightCommand: window.__siCommands.at(-1)[0],
-                    hasContent: document.body.textContent.includes("Preview content")
+                    highlightCommand: window.parent.__siCommands.at(-1)[0],
+                    hasContent: document.body.textContent.includes("Preview content"),
+                    containsAssistantUi: !!result[0].querySelector(".si-toggle-container, .si-iframe-container")
                 };
             });
-            expect(check).toEqual({ usesRenderedDocument: true, label: "Full page", highlightCommand: "applyDefaultHighlighting", hasContent: true });
-            expect(await frame.evaluate(() => window.__siDraftResult)).toBe(await frame.title());
+            expect(check).toEqual({ usesRenderedDocument: true, label: "Full page", highlightCommand: "applyDefaultHighlighting", hasContent: true, containsAssistantUi: false });
+            expect(await popup.evaluate(() => window.__siDraftResult)).toBe(await frame.title());
+            const platformPromise = popup.waitForEvent("popup");
+            await popup.getByRole("link", { name: "View on platform", exact: true }).click();
+            const platform = await platformPromise;
+            await expect(platform.getByRole("heading", { name: "Platform issue" })).toBeVisible();
+            await platform.close();
             await screenshot(popup, testInfo, name + "-preview");
             await frame.getByRole("link", { name: "Second page", exact: true }).click();
             await expect(frame.getByRole("heading", { name: "Second Page", exact: true })).toBeVisible();
             await expect(frame.locator("script[data-siteimprove-preview]")).toHaveAttribute("data-page-url", PUBLIC_ORIGIN + "/second-page/");
-            await expect.poll(() => frame.evaluate(() => window.__siOverlayLoads)).toBe(1);
+            await expect.poll(() => popup.evaluate(() => window.__siOverlayLoads)).toBe(1);
             await expect(frame.locator("script[data-siteimprove-preview]")).toHaveAttribute("data-preview-session", "");
-            expect(await frame.evaluate(() => window.__siCommands[0][1])).toBeNull();
+            expect(await popup.evaluate(() => window.__siCommands.filter(c => c[0] === "setSession").at(-1)[1])).toBeNull();
             await popup.close();
         });
     }

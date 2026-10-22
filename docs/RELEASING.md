@@ -1,6 +1,6 @@
 # Release preparation
 
-The current version is **1.0.0-beta.6**. The customer beta and stable release
+The current version is **1.0.0-beta.7**. The customer beta and stable release
 have separate acceptance gates. A successful workflow produces a candidate;
 the live-service and deployment checks in [VALIDATION.md](VALIDATION.md) still
 govern stable publication.
@@ -33,7 +33,7 @@ Keep the downloaded ZIP and its `.sha256` file together. From the source checkou
 run the verifier with the full source commit selected for release:
 
 ```sh
-python3 scripts/verify-beta-bundle.py /absolute/path/to/Siteimprove.Umbraco17.Plugin.1.0.0-beta.6.customer.zip --require-ci --expected-source-commit <full-source-commit>
+python3 scripts/verify-beta-bundle.py /absolute/path/to/Siteimprove.Umbraco17.Plugin.1.0.0-beta.7.customer.zip --require-ci --expected-source-commit <full-source-commit>
 ```
 
 This verifies the ZIP sidecar, exact contents, internal checksums, package and

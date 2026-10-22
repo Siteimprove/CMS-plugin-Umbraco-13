@@ -8,7 +8,7 @@ import { initializeVisibility, setWorkspaceModalVisibility } from "./visibility.
 let controller;
 export function onInit(host) {
     // Umbraco also loads backoffice entry points in its preview shell.
-    // The rendered preview iframe owns the assistant and its callbacks.
+    // The rendered page initializes the preview assistant with its own document callback.
     if (host.getHostElement?.().localName === "umb-preview") return;
     initializeVisibility();
     controller?.destroy();

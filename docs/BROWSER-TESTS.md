@@ -1,5 +1,25 @@
 # Browser functionality tests
 
+## Beta 7 preview content and platform links
+
+The rendered preview initializes one assistant in its native `umb-preview`
+parent window. The SDK's document callback and highlight callback keep pointing
+to the rendered page; neither the launcher nor the assistant panel is placed in
+that document. A platform-link regression opens a separate tab while asserting
+that Umbraco's page iframe still has only
+`allow-scripts allow-same-origin allow-forms`. Preview navigation retains one
+outer overlay and updates the current document callback.
+
+On the beta.5 deployment, the reported policy match highlighted `Siteimprove`
+inside `#siTooltip`, rather than customer page content. A fresh draft check
+reproduced it. “View on platform” also failed to open from the nested assistant;
+the native page iframe did not allow popups. Neither symptom was fixed by the
+beta.6 preview script, which was identical to the deployed script.
+
+JavaScript regressions cover the host selection, document/highlight targets,
+overlay reuse and teardown ordering. Browser and real-service results must be
+recorded for the accepted beta.7 source and deployment.
+
 ## Beta 6 nested workspace restoration
 
 The assistant retains each live workspace's document and culture in nesting
