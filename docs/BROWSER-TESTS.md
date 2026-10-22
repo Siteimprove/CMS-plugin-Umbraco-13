@@ -13,6 +13,15 @@ expected inspector URL in a new Chrome tab. See [validation](VALIDATION.md) for
 the remaining service and hosting boundaries. The sections below preserve the
 regression history; they do not replace the final release workflow result.
 
+The [initial GA browser run](https://github.com/Siteimprove/CMS-plugin-Umbraco-13/actions/runs/39779653852)
+passed 16 of 18 cases. Firefox saved the domain successfully, then its native
+token request remained pending during reload. A later plugin-disabled login also
+stalled on Umbraco's authorize endpoint. The disposable SQLite hosts now omit
+`Cache=Shared`, following Microsoft's guidance for databases using WAL. This
+corrects the fixture configuration; the traces do not establish the underlying
+CMS stall's root cause. No assertion, timeout or error classifier was relaxed.
+See [Microsoft.Data.Sqlite connection strings](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/connection-strings#basic).
+
 ## Beta 8 upgrades with cached assets
 
 Preview scripts use the plugin assembly's package version in their URL. Local

@@ -34,7 +34,7 @@ export default defineConfig({
             ASPNETCORE_URLS: origin(index),
             ASPNETCORE_CONTENTROOT: fixture(name),
             ASPNETCORE_ENVIRONMENT: "Development",
-            ConnectionStrings__umbracoDbDSN: "Data Source=" + fixture(name) + "/BrowserTests.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True",
+            ConnectionStrings__umbracoDbDSN: "Data Source=" + fixture(name) + "/BrowserTests.sqlite.db;Foreign Keys=True;Pooling=True",
             Umbraco__CMS__Unattended__UnattendedUserPassword: password
         }
     }))
