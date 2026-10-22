@@ -34,13 +34,12 @@ inspector URL in a new Chrome tab. Umbraco's preview sandbox stayed unchanged.
 A consistent database/file backup and the previous container image were retained.
 Earlier self-hosted evidence covers multilingual routes, two site roots, an
 isolated backup restore drill and ordinary public pages without preview injection.
+The project owner also confirmed on 22 October 2026 that live view works and
+the page report is accessible when the site has been crawled. This supersedes
+the earlier observation of Siteimprove's initial quality-review notice.
 
 ## Known limits and inherited issues
 
-- **Published-page service results:** the demo account's page report still shows
-  Siteimprove's initial quality-review notice. The link destination was verified;
-  completion of that review and a subsequent full live-page recheck were not.
-  This package does not change Siteimprove crawl or account-review settings.
 - **Dependency advisories:** the final beta.8 CI reported ImageSharp 3.1.12 and
   MessagePack 3.1.8 warnings inherited through the Umbraco host. Pkcs/Xml are
   explicitly patched to 10.0.13. The warnings are retained; this release does
